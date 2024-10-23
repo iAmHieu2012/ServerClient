@@ -37,6 +37,3 @@ int ShutdownMachine(){
     //shutdown was successful
     return 1;
 }
-//int main() {
-//    MySystemShutdown();
-//}

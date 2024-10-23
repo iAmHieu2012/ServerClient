@@ -128,6 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="listProcess.cpp" />
+    <ClCompile Include="fileTransfer.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="Shutdown.cpp" />
     <ClCompile Include="startProcess.cpp" />

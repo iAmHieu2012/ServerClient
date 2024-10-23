@@ -1,18 +1,4 @@
-#define WIN32_LEAN_AND_MEAN
-
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-// Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "Mswsock.lib")
-#pragma comment(lib, "AdvApi32.lib")
-
-#define DEFAULT_BUFLEN 512
-#define DEFAULT_PORT "27015"
+#include "Client.h"
 
 int __cdecl main(int argc, char** argv)
 {
@@ -89,32 +75,6 @@ int __cdecl main(int argc, char** argv)
 		return 1;
 	}
 
-	/* ---- TEST ---- */
-
-	// Send an initial buffer
-	//fgets(sendbuf, DEFAULT_BUFLEN, stdin);
-	//iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
-	//if (iResult == SOCKET_ERROR)
-	//{
-	//	printf("send failed with error: %d\n", WSAGetLastError());
-	//	closesocket(ConnectSocket);
-	//	WSACleanup();
-	//	return 1;
-	//}
-
-	//printf("Result: %ld\n", iResult);
-
-	// shutdown the connection since no more data will be sent
-	//iResult = shutdown(ConnectSocket, SD_SEND);
-	//if (iResult == SOCKET_ERROR)
-	//{
-	//	printf("shutdown failed with error: %d\n", WSAGetLastError());
-	//	closesocket(ConnectSocket);
-	//	WSACleanup();
-	//	return 1;
-	//}
-		/* ---- END TEST ---- */
-
 	// Receive until the peer closes the connection
 	do
 	{
@@ -123,7 +83,7 @@ int __cdecl main(int argc, char** argv)
 		iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
 		iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
 		if (iResult > 0 && strcmp(recvbuf, "Task is finished") != 0)
-			printf("%s\n", recvbuf);
+			printf("Server: %s\n", recvbuf);
 		else if (iResult == 0 || strcmp(recvbuf, "Task is finished") == 0) {
 			iResult = 0;
 			printf("Connection closed\n");

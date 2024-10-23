@@ -83,10 +83,6 @@ int __cdecl main(void)
 
 	// No longer need server socket
 	closesocket(ListenSocket);
-	/* ---- TEST ---- */
-
-	//iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
-	/* ---- END TEST ---- */
 
 
 	// Receive until the peer shuts down the connection
@@ -98,10 +94,6 @@ int __cdecl main(void)
 		TASK t = request2TASK(recvbuf);
 		int success = 0;
 		if (iResult > 0) {
-			if (wcscmp(t.TaskName, L"SHUTDOWN") == 0) {
-				iResult = 0;
-				break;
-			}
 			success = doTasks(ClientSocket, t);
 			if (success) strcpy_s(recvbuf, "Task is finished");
 			iSendResult = send(ClientSocket, recvbuf, iResult, 0);
