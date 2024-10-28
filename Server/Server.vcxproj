@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="killProcess.cpp" />
     <ClCompile Include="listProcess.cpp" />
     <ClCompile Include="fileTransfer.cpp" />
     <ClCompile Include="screenCapture.cpp" />

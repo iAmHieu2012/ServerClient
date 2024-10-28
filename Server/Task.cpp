@@ -27,18 +27,24 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 		if (res) strcpy_s(sendbuf, DEFAULT_BUFLEN, "Starting process is finished");
 		else strcpy_s(sendbuf, DEFAULT_BUFLEN, "Failed to start process!");
 		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
-
+	}
+	else if (wcscmp(a.TaskName, L"KILLPROCESS") == 0) {
+		res = KillProcess(a.TaskDescribe);
+		if (res) strcpy_s(sendbuf, DEFAULT_BUFLEN, "Killing process is finished");
+		else strcpy_s(sendbuf, DEFAULT_BUFLEN, "Failed to kill process!");
+		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
 	}
 	else if (wcscmp(a.TaskName, L"LISTPROCESS") == 0) {
-		res = GetProcessList();
-		if (res) strcpy_s(sendbuf, DEFAULT_BUFLEN, "List of processes are generated");
-		else strcpy_s(sendbuf, DEFAULT_BUFLEN, "Failed to generate running processes");
+		res = GetProcessList(a.TaskDescribe);
+		char* buffer = new char[DEFAULT_BUFLEN];
+		size_t convertedChars = 0;
+		wcstombs_s(&convertedChars, buffer, DEFAULT_BUFLEN, a.TaskDescribe, DEFAULT_BUFLEN);
+		std::string path(buffer);
+		strcpy_s(sendbuf, DEFAULT_BUFLEN, buffer);
 		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
 		if (res==1) {
-			int64_t rc = SendFile(ClientSocket, "process.txt", 64 * 1024);
-			if (rc < 0) {
-				std::cout << "Failed to send file: " << rc << std::endl;
-			}
+			int64_t rc = SendFile(ClientSocket, path, 64 * 1024);
+			if (rc < 0) return -1;
 		}
 	}
 	else if (wcscmp(a.TaskName, L"SENDFILE") == 0) {
@@ -46,17 +52,10 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 		size_t convertedChars = 0;
 		wcstombs_s(&convertedChars, buffer, DEFAULT_BUFLEN, a.TaskDescribe, DEFAULT_BUFLEN);
 		std::string path(buffer);
-		/*strcpy_s(sendbuf, DEFAULT_BUFLEN, "Sending file ...");
-		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);*/
 		strcpy_s(sendbuf, DEFAULT_BUFLEN, buffer);
 		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
 		int64_t rc = SendFile(ClientSocket, path, 64 * 1024);
-		if (rc >= 0) {
-			strcpy_s(sendbuf, DEFAULT_BUFLEN, "File is sent");
-			res = 1;
-		}
-		else strcpy_s(sendbuf, DEFAULT_BUFLEN, "Failed to send");
-		//iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
+		if (rc < 0) return -1;
 	}
 	else if (wcscmp(a.TaskName, L"SCREENCAPTURE") == 0) {
 		res = SaveBitmap(a.TaskDescribe);
@@ -64,15 +63,11 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 		size_t convertedChars = 0;
 		wcstombs_s(&convertedChars, buffer, DEFAULT_BUFLEN, a.TaskDescribe, DEFAULT_BUFLEN);
 		std::string path(buffer);
-		//strcpy_s(sendbuf, DEFAULT_BUFLEN, "Sending screen captured image ...");
-		//iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
 		strcpy_s(sendbuf, DEFAULT_BUFLEN, buffer);
 		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
 		if (res == 1) {
 			int64_t rc = SendFile(ClientSocket, path, 64 * 1024);
-			if (rc < 0) {
-				std::cout << "Failed to send file: " << rc << std::endl;
-			}
+			if (rc < 0) return -1;
 		}
 	}
 	return res;

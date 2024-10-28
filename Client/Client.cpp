@@ -85,19 +85,13 @@ int __cdecl main(int argc, char** argv)
 	iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFLEN, 0);
 	fprintf(stdout, "Server: %s\n", recvbuf);
 	if (iResult > 0) {
-		if (strcmp(recvbuf, "Machine is shutdown...")==0) {
+		if (strcmp(recvbuf, "Machine is shutdown...") == 0 || strcmp(recvbuf, "Starting process is finished") == 0 || strcmp(recvbuf, "Killing process is finished") == 0) {
 			closesocket(ConnectSocket);
 			WSACleanup();
 			return 0;
 		}
-		else if (strcmp(recvbuf, "List of processes are generated") == 0) {
-			const int64_t rc = RecvFile(ConnectSocket, "process.txt", 64 * 1024);
-			if (rc < 0) {
-				std::cout << "Failed to recv file" << std::endl;
-			}
-		}
 		else {
-			const int64_t rc = RecvFile(ConnectSocket, std::string(recvbuf), 64*1024);
+			const int64_t rc = RecvFile(ConnectSocket, std::string(recvbuf), 64 * 1024);
 			if (rc < 0) {
 				std::cout << "Failed to recv file: " << rc << std::endl;
 			}
