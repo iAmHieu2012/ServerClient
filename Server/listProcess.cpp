@@ -5,12 +5,12 @@ void printError(TCHAR const* msg);
 
 int GetProcessList()
 {
-	std::fstream fp;
+	std::wfstream fp;
 	fp.open("process.txt", std::ios::out | std::ios::trunc);
-	fp << std::setw(40) << std::left << "Process Name" << std::setw(20) << std::left << "ProcessID" << std::endl;
-	fp << std::setfill('-');
-	fp << std::setw(60) << '-' << std::endl;
-	fp << std::setfill(' ');
+	fp << std::setw(40) << std::left << L"Process Name" << std::setw(20) << std::left << L"ProcessID" << std::endl;
+	fp << std::setfill(L'-');
+	fp << std::setw(60) << L'-' << std::endl;
+	fp << std::setfill(L' ');
 
 	HANDLE hProcessSnap;
 	HANDLE hProcess;

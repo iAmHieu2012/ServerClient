@@ -12,9 +12,8 @@ int __cdecl main(void)
 	struct addrinfo* result = NULL;
 	struct addrinfo hints;
 
-	int iSendResult;
 	char recvbuf[DEFAULT_BUFLEN];
-	int recvbuflen = DEFAULT_BUFLEN;
+	char sendbuf[DEFAULT_BUFLEN];
 
 	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -86,30 +85,25 @@ int __cdecl main(void)
 
 
 	// Receive until the peer shuts down the connection
-
-	do
-	{
-		iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
-		std::cout << recvbuf << " " << iResult << std::endl;
+	memset(recvbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
+	memset(sendbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
+	iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFLEN, 0);
+	if (iResult > 0) {
 		TASK t = request2TASK(recvbuf);
-		int success = 0;
-		if (iResult > 0) {
-			success = doTasks(ClientSocket, t);
-			if (success) strcpy_s(recvbuf, "Task is finished");
-			iSendResult = send(ClientSocket, recvbuf, iResult, 0);
-		}
-		else if (iResult == 0) {
-			printf("Connection closing...\n");
-		}
-		else {
-			printf("Something went wrong!?...\n");
-			printf("recv failed with error: %d\n", WSAGetLastError());
-			closesocket(ClientSocket);
-			WSACleanup();
-			return 1;
-		}
+		std::wcout << L"t.TaskName= " << t.TaskName << std::endl << L"t.TaskDescribe= " << t.TaskDescribe << std::endl;
+		doTasks(ClientSocket, t);
 
-	} while (iResult > 0);
+	}
+	else if (iResult == 0) {
+		printf("Connection closing...\n");
+	}
+	else {
+		printf("Something went wrong!?...\n");
+		printf("recv failed with error: %d\n", WSAGetLastError());
+		closesocket(ClientSocket);
+		WSACleanup();
+		return 1;
+	}
 
 	// shutdown the connection since we're done
 	iResult = shutdown(ClientSocket, SD_SEND);

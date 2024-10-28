@@ -33,6 +33,9 @@
     <ClCompile Include="fileTransfer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="screenCapture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Tasks.h">

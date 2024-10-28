@@ -10,7 +10,6 @@ int __cdecl main(int argc, char** argv)
 	char sendbuf[DEFAULT_BUFLEN];
 	char recvbuf[DEFAULT_BUFLEN];
 	int iResult;
-	int recvbuflen = DEFAULT_BUFLEN;
 
 	// Validate the parameters
 	if (argc != 2)
@@ -76,23 +75,34 @@ int __cdecl main(int argc, char** argv)
 	}
 
 	// Receive until the peer closes the connection
-	do
-	{
-		fputs("Client: ", stdout);
-		fgets(sendbuf, DEFAULT_BUFLEN, stdin);
-		iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
-		iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
-		if (iResult > 0 && strcmp(recvbuf, "Task is finished") != 0)
-			printf("Server: %s\n", recvbuf);
-		else if (iResult == 0 || strcmp(recvbuf, "Task is finished") == 0) {
-			iResult = 0;
-			printf("Connection closed\n");
-		}
-		else
-			printf("recv failed with error: %d\n", WSAGetLastError());
 
-	} while (iResult > 0);
-	//// cleanup
+	memset(recvbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
+	memset(sendbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
+	fputs("Client: ", stdout);
+	fgets(sendbuf, DEFAULT_BUFLEN, stdin);
+	sendbuf[strlen(sendbuf) - 1] = '\0';
+	iResult = send(ConnectSocket, sendbuf, strlen(sendbuf) + 1, 0);
+	iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFLEN, 0);
+	fprintf(stdout, "Server: %s\n", recvbuf);
+	if (iResult > 0) {
+		if (strcmp(recvbuf, "Machine is shutdown...")==0) {
+			closesocket(ConnectSocket);
+			WSACleanup();
+			return 0;
+		}
+		else if (strcmp(recvbuf, "List of processes are generated") == 0) {
+			const int64_t rc = RecvFile(ConnectSocket, "process.txt", 64 * 1024);
+			if (rc < 0) {
+				std::cout << "Failed to recv file" << std::endl;
+			}
+		}
+		else {
+			const int64_t rc = RecvFile(ConnectSocket, std::string(recvbuf), 64*1024);
+			if (rc < 0) {
+				std::cout << "Failed to recv file: " << rc << std::endl;
+			}
+		}
+	}
 	closesocket(ConnectSocket);
 	WSACleanup();
 

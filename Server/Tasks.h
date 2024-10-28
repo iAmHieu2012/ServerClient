@@ -27,3 +27,5 @@ int StartProcess(wchar_t*);
 int GetProcessList();
 int64_t RecvFile(SOCKET, const std::string&, int);
 int64_t SendFile(SOCKET, const std::string& , int);
+int WINAPI SaveBitmap(WCHAR*);
+

@@ -10,28 +10,70 @@ TASK request2TASK(char* request) {
 	wchar_t* nextToken = NULL;
 	a.TaskName = wcstok_s(wcRequest, L" ", &nextToken);
 	a.TaskDescribe = nextToken;
-	a.TaskDescribe[wcslen(nextToken) + 1] = '\0';
 	return a;
 }
 int doTasks(SOCKET ClientSocket, TASK a) {
 	int res = 0;
-	if (wcscmp(a.TaskName,L"SHUTDOWN") == 0) {
-		char* recvbuf = new char[DEFAULT_BUFLEN];
-		strcpy_s(recvbuf, sizeof(recvbuf), "Task is finished");
-		int iSentResult = 0;
-		iSentResult = send(ClientSocket, recvbuf, strlen(recvbuf) + 1, 0);
-		printf("Connection closing...\n");
-		closesocket(ClientSocket);
-		WSACleanup();
+	char* sendbuf = new char[DEFAULT_BUFLEN];
+	memset(sendbuf, '\0', DEFAULT_BUFLEN);
+	int iSentResult = 0;
+	if (wcscmp(a.TaskName, L"SHUTDOWN") == 0) {
+		strcpy_s(sendbuf, DEFAULT_BUFLEN, "Machine is shutdown...");
+		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
 		res = ShutdownMachine();
 	}
 	else if (wcscmp(a.TaskName, L"STARTPROCESS") == 0) {
 		res = StartProcess(a.TaskDescribe);
+		if (res) strcpy_s(sendbuf, DEFAULT_BUFLEN, "Starting process is finished");
+		else strcpy_s(sendbuf, DEFAULT_BUFLEN, "Failed to start process!");
+		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
+
 	}
 	else if (wcscmp(a.TaskName, L"LISTPROCESS") == 0) {
 		res = GetProcessList();
-		int64_t iSendResult = 0;
-		iSendResult = SendFile(ClientSocket, "process.txt",);
+		if (res) strcpy_s(sendbuf, DEFAULT_BUFLEN, "List of processes are generated");
+		else strcpy_s(sendbuf, DEFAULT_BUFLEN, "Failed to generate running processes");
+		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
+		if (res==1) {
+			int64_t rc = SendFile(ClientSocket, "process.txt", 64 * 1024);
+			if (rc < 0) {
+				std::cout << "Failed to send file: " << rc << std::endl;
+			}
+		}
+	}
+	else if (wcscmp(a.TaskName, L"SENDFILE") == 0) {
+		char* buffer = new char[DEFAULT_BUFLEN];
+		size_t convertedChars = 0;
+		wcstombs_s(&convertedChars, buffer, DEFAULT_BUFLEN, a.TaskDescribe, DEFAULT_BUFLEN);
+		std::string path(buffer);
+		/*strcpy_s(sendbuf, DEFAULT_BUFLEN, "Sending file ...");
+		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);*/
+		strcpy_s(sendbuf, DEFAULT_BUFLEN, buffer);
+		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
+		int64_t rc = SendFile(ClientSocket, path, 64 * 1024);
+		if (rc >= 0) {
+			strcpy_s(sendbuf, DEFAULT_BUFLEN, "File is sent");
+			res = 1;
+		}
+		else strcpy_s(sendbuf, DEFAULT_BUFLEN, "Failed to send");
+		//iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
+	}
+	else if (wcscmp(a.TaskName, L"SCREENCAPTURE") == 0) {
+		res = SaveBitmap(a.TaskDescribe);
+		char* buffer = new char[DEFAULT_BUFLEN];
+		size_t convertedChars = 0;
+		wcstombs_s(&convertedChars, buffer, DEFAULT_BUFLEN, a.TaskDescribe, DEFAULT_BUFLEN);
+		std::string path(buffer);
+		//strcpy_s(sendbuf, DEFAULT_BUFLEN, "Sending screen captured image ...");
+		//iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
+		strcpy_s(sendbuf, DEFAULT_BUFLEN, buffer);
+		iSentResult = send(ClientSocket, sendbuf, strlen(sendbuf) + 1, 0);
+		if (res == 1) {
+			int64_t rc = SendFile(ClientSocket, path, 64 * 1024);
+			if (rc < 0) {
+				std::cout << "Failed to send file: " << rc << std::endl;
+			}
+		}
 	}
 	return res;
 }
