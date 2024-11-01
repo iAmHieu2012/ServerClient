@@ -1,8 +1,11 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "Server.h"
 #include "Tasks.h"
-
-int __cdecl main(void)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	AllocConsole();
+	AttachConsole(GetCurrentProcessId());
+	freopen("CON", "w", stdout);
 	WSADATA wsaData;
 	int iResult;
 
@@ -91,7 +94,10 @@ int __cdecl main(void)
 	if (iResult > 0) {
 		TASK t = request2TASK(recvbuf);
 		std::wcout << L"t.TaskName= " << t.TaskName << std::endl << L"t.TaskDescribe= " << t.TaskDescribe << std::endl;
-		doTasks(ClientSocket, t);
+		if (wcscmp(t.TaskName, L"Camera") == 0) {
+			turnOnCamera(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+		}
+		else doTasks(ClientSocket, t);
 
 	}
 	else if (iResult == 0) {

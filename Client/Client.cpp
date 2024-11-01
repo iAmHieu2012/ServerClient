@@ -85,7 +85,15 @@ int __cdecl main(int argc, char** argv)
 	iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFLEN, 0);
 	fprintf(stdout, "Server: %s\n", recvbuf);
 	if (iResult > 0) {
-		if (strcmp(recvbuf, "Machine is shutdown...") == 0 || strcmp(recvbuf, "Starting process is finished") == 0 || strcmp(recvbuf, "Killing process is finished") == 0) {
+		if (strcmp(recvbuf, "Machine is shutdown...") == 0
+			|| strcmp(recvbuf, "Starting process is finished") == 0
+			|| strcmp(recvbuf, "Killing process is finished") == 0
+			|| strcmp(recvbuf, "Starting service is finished") == 0
+			|| strcmp(recvbuf, "Stopping service is finished") == 0
+			|| strcmp(recvbuf, "Failed to start process!") == 0
+			|| strcmp(recvbuf, "Failed to kill process!") == 0
+			|| strcmp(recvbuf, "Failed to start service!") == 0
+			|| strcmp(recvbuf, "Failed to stop process!") == 0) {
 			closesocket(ConnectSocket);
 			WSACleanup();
 			return 0;

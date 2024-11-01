@@ -20,6 +20,7 @@ int GetProcessList(wchar_t* fileName)
 	if (hProcessSnap == INVALID_HANDLE_VALUE)
 	{
 		printError(TEXT("CreateToolhelp32Snapshot (of processes)"));
+		fp << L"WARNING: CreateToolhelp32Snapshot (of processes) failed with error";
 		return 0;
 	}
 
@@ -31,6 +32,7 @@ int GetProcessList(wchar_t* fileName)
 	if (!Process32First(hProcessSnap, &pe32))
 	{
 		printError(TEXT("Process32First")); // show cause of failure
+		fp << L"WARNING: Process32First failed with error";
 		CloseHandle(hProcessSnap);			// clean the snapshot object
 		return 0;
 	}
@@ -39,21 +41,22 @@ int GetProcessList(wchar_t* fileName)
 	// display information about each process in turn
 	do
 	{
-		_tprintf(TEXT("\n\n====================================================="));
-		_tprintf(TEXT("\nPROCESS NAME:  %s"), pe32.szExeFile);
-		_tprintf(TEXT("\n-------------------------------------------------------"));
+		//_tprintf(TEXT("\n\n====================================================="));
+		//_tprintf(TEXT("\nPROCESS NAME:  %s"), pe32.szExeFile);
+		// 
 		// Retrieve the priority class.
 		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
 		if (hProcess == NULL)
 			printError(TEXT("OpenProcess"));
 
-		_tprintf(TEXT("\n  Process ID        = 0x%08X"), pe32.th32ProcessID);
+		//_tprintf(TEXT("  Process ID        = 0x%08X"), pe32.th32ProcessID);
 		// _tprintf(TEXT("\n  Thread count      = %d"), pe32.cntThreads);
 		// _tprintf(TEXT("\n  Parent process ID = 0x%08X"), pe32.th32ParentProcessID);
 		fp << std::setw(40) << std::left << (pe32.szExeFile) << std::setw(20) << std::hex << (pe32.th32ProcessID) << std::endl;
 	} while (Process32Next(hProcessSnap, &pe32));
 
 	CloseHandle(hProcessSnap);
+	fp.close();
 	return 1;
 }
 
