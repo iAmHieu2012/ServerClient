@@ -15,6 +15,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	struct addrinfo* result = NULL;
 	struct addrinfo hints;
 
+	char recvbuf[DEFAULT_BUFLEN];
+	char sendbuf[DEFAULT_BUFLEN];
+
 	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0)
@@ -83,37 +86,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// No longer need server socket
 	closesocket(ListenSocket);
 
-	// Receive until the peer shuts down the connection
-	wchar_t* sendbuf = new wchar_t[DEFAULT_BUFLEN];
-	wchar_t* recvbuf = new wchar_t[DEFAULT_BUFLEN];
-	while (1) {
-		iResult = recv(ClientSocket, reinterpret_cast<char*>(recvbuf), DEFAULT_BUFLEN, 0);
-		std::wcout << "Client: " << recvbuf << std::endl;
-		TASK t = request2TASK(recvbuf);
-		if (iResult > 0) {
-			if (wcscmp(t.TaskName, L"CAMERA") == 0) {
-				turnOnCamera(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-			}
-			else {
-				iResult = doTasks(ClientSocket, t);
-			}
-			if (iResult <= 0) break;
-		}
-		else if (iResult == 0) {
-			printf("Connection closing...\n");
-			break;
-		}
-		else {
-			printf("Something went wrong!?...\n");
-			printf("recv failed with error: %d\n", WSAGetLastError());
-			closesocket(ClientSocket);
-			WSACleanup();
-			return 1;
-		}
-	}
 
-	//memset(recvbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
-	//memset(sendbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
+	// Receive until the peer shuts down the connection
+	memset(recvbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
+	memset(sendbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
+	iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFLEN, 0);
+	if (iResult > 0) {
+		TASK t = request2TASK(recvbuf);
+		std::wcout << L"t.TaskName= " << t.TaskName << std::endl << L"t.TaskDescribe= " << t.TaskDescribe << std::endl;
+		if (wcscmp(t.TaskName, L"Camera") == 0) {
+			turnOnCamera(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+		}
+		else doTasks(ClientSocket, t);
+
+	}
+	else if (iResult == 0) {
+		printf("Connection closing...\n");
+	}
+	else {
+		printf("Something went wrong!?...\n");
+		printf("recv failed with error: %d\n", WSAGetLastError());
+		closesocket(ClientSocket);
+		WSACleanup();
+		return 1;
+	}
 
 	// shutdown the connection since we're done
 	iResult = shutdown(ClientSocket, SD_SEND);

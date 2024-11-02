@@ -8,7 +8,7 @@ int ShutdownMachine(){
 
     if (!OpenProcessToken(GetCurrentProcess(),
         TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
-        return 1;
+        return 0;
 
     // Get the LUID for the shutdown privilege. 
 
@@ -24,7 +24,7 @@ int ShutdownMachine(){
         (PTOKEN_PRIVILEGES)NULL, 0);
 
     if (GetLastError() != ERROR_SUCCESS)
-        return 1;
+        return 0;
 
     // Shut down the system and force all applications to close. 
 
@@ -32,8 +32,8 @@ int ShutdownMachine(){
         SHTDN_REASON_MAJOR_OPERATINGSYSTEM |
         SHTDN_REASON_MINOR_UPGRADE |
         SHTDN_REASON_FLAG_PLANNED))
-        return 1;
+        return 0;
 
     //shutdown was successful
-    return 0;
+    return 1;
 }

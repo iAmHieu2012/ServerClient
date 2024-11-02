@@ -331,7 +331,7 @@ STDMETHODIMP Media::OnFlush(DWORD) { return S_OK; }
 
 // RENDERING MEDIA
 
-RenderingWindow::RenderingWindow(LPWSTR name, int width, int height, int cmd)
+RenderingWindow::RenderingWindow(LPWSTR name, int width, int height,int cmd)
 {
 	factory = NULL;
 	d2dBitmap = NULL;
@@ -340,7 +340,7 @@ RenderingWindow::RenderingWindow(LPWSTR name, int width, int height, int cmd)
 	WNDCLASSEX wc{ 0 };
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wc.hCursor = (HCURSOR)LoadCursor(NULL, IDC_ARROW);
+	wc.hCursor = (HCURSOR)LoadCursor(NULL,IDC_ARROW);
 	wc.lpfnWndProc = RenderingWindow::MsgRouter;
 	wc.lpszClassName = TEXT("WindowClass");
 	wc.style = CS_VREDRAW | CS_HREDRAW;
@@ -360,7 +360,7 @@ RenderingWindow::RenderingWindow(LPWSTR name, int width, int height, int cmd)
 		rtProperties.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE);
 		rtProperties.usage = D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE;
 		factory->CreateHwndRenderTarget(rtProperties, D2D1::HwndRenderTargetProperties(windowHandle, size), &renderTarget);
-		renderTarget->CreateBitmap(size, D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE)),
+		renderTarget->CreateBitmap(size,D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE)),
 			&d2dBitmap);
 	}
 }
@@ -383,7 +383,7 @@ RenderingWindow::~RenderingWindow()
 	}
 
 }
-void RenderingWindow::Draw(BYTE* pixels, int width, int height)
+void RenderingWindow::Draw(BYTE* pixels,int width, int height) 
 {
 	d2dBitmap->CopyFromMemory(NULL, pixels, width);
 	renderTarget->BeginDraw();
@@ -401,9 +401,9 @@ LRESULT CALLBACK RenderingWindow::MsgRouter(HWND hWnd, UINT msg, WPARAM wParam, 
 	}
 	else
 	{
-		app = (RenderingWindow*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		app = (RenderingWindow*)GetWindowLongPtr(hWnd,GWLP_USERDATA);
 	}
-	return app->WndProc(hWnd, msg, wParam, lParam);
+	return app->WndProc(hWnd,msg,wParam,lParam);
 }
 
 LRESULT CALLBACK RenderingWindow::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -418,7 +418,7 @@ LRESULT CALLBACK RenderingWindow::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LP
 		PostQuitMessage(0);
 		break;
 	default:
-		return DefWindowProc(hWnd, msg, wParam, lParam);
+		return DefWindowProc(hWnd,msg,wParam,lParam);
 		break;
 	}
 	return 0;
