@@ -7,8 +7,6 @@ int __cdecl main(int argc, char** argv)
 	struct addrinfo* result = NULL,
 		* ptr = NULL,
 		hints;
-	char sendbuf[DEFAULT_BUFLEN];
-	char recvbuf[DEFAULT_BUFLEN];
 	int iResult;
 
 	// Validate the parameters
@@ -74,9 +72,41 @@ int __cdecl main(int argc, char** argv)
 		return 1;
 	}
 
+	wchar_t* sendbuf = new wchar_t[DEFAULT_BUFLEN];
+	wchar_t* recvbuf = new wchar_t[DEFAULT_BUFLEN];
+	while (1) {
+		fgetws(sendbuf, DEFAULT_BUFLEN, stdin);
+		sendbuf[wcslen(sendbuf) - 1] = L'\0';
+		if (wcslen(sendbuf) == 0) {
+			break;
+		}
+		iResult = send(ConnectSocket, reinterpret_cast<const char*>(sendbuf), DEFAULT_BUFLEN, 0);
+		if (iResult > 0) {
+			TASK t = request2TASK(sendbuf);
+			if (wcscmp(t.TaskName, L"LISTPROCESS") == 0
+				|| wcscmp(t.TaskName, L"LISTSERVICES") == 0
+				|| wcscmp(t.TaskName, L"SENDFILE") == 0
+				|| wcscmp(t.TaskName, L"SCREENCAPTURE") == 0)
+			{
+				const int64_t rc = RecvFile(ConnectSocket, t.TaskDescribe);
+				if (rc < 0)
+				{
+					std::cout << "Failed to recv file: " << rc << std::endl;
+				}
+			}
+			else if (wcscmp(t.TaskName, L"END") == 0)
+			{
+				break;
+			}
+			else {
+				iResult = recvStr(ConnectSocket, recvbuf);
+				std::wcout << L"Server: " << recvbuf << std::endl;
+			}
+		}
+	}
 	// Receive until the peer closes the connection
 
-	memset(recvbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
+	/*memset(recvbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
 	memset(sendbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
 	fputs("Client: ", stdout);
 	fgets(sendbuf, DEFAULT_BUFLEN, stdin);
@@ -104,7 +134,7 @@ int __cdecl main(int argc, char** argv)
 				std::cout << "Failed to recv file: " << rc << std::endl;
 			}
 		}
-	}
+	}*/
 	closesocket(ConnectSocket);
 	WSACleanup();
 
