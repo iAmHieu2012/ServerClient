@@ -19,5 +19,13 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "27015"
 
-int64_t RecvFile(SOCKET, const std::string&, int);
-int64_t SendFile(SOCKET, const std::string&, int);
+struct Tasks {
+	wchar_t* TaskName = new wchar_t[512];
+	wchar_t* TaskDescribe = new wchar_t[512];
+};
+typedef struct Tasks TASK;
+TASK request2TASK(wchar_t*);
+int64_t RecvFile(SOCKET, const wchar_t*, int chunkSize = 64 * 1024);
+int64_t SendFile(SOCKET, const wchar_t*, int chunkSize = 64 * 1024);
+int sendStr(SOCKET, const wchar_t*, int len = DEFAULT_BUFLEN);
+int recvStr(SOCKET, wchar_t*, int len = DEFAULT_BUFLEN);

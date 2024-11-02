@@ -24,19 +24,13 @@
     <ClCompile Include="Shutdown.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="startProcess.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="listProcess.cpp">
+    <ClCompile Include="processInteract.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fileTransfer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="screenCapture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="killProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="servicesInteract.cpp">
