@@ -94,14 +94,12 @@ int __cdecl main(int argc, char** argv)
 					std::cout << "Failed to recv file: " << rc << std::endl;
 				}
 			}
-			else if (wcscmp(t.TaskName, L"END") == 0||wcscmp(t.TaskName, L"SHUTDOWN")==0)
+			else if (wcscmp(t.TaskName, L"END") == 0 || wcscmp(t.TaskName, L"SHUTDOWN") == 0)
 			{
 				break;
 			}
-			else {
-				iResult = recvStr(ConnectSocket, recvbuf);
-				std::wcout << L"Server: " << recvbuf << std::endl;
-			}
+			iResult = recvStr(ConnectSocket, recvbuf);
+			std::wcout << L"Server: " << recvbuf << std::endl;
 		}
 	}
 	// Receive until the peer closes the connection

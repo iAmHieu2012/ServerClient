@@ -88,13 +88,7 @@ int __cdecl main(void)
 		std::wcout << "Client: " << recvbuf << std::endl;
 		TASK t = request2TASK(recvbuf);
 		if (iResult > 0) {
-			if (wcscmp(t.TaskName, L"CAMERA") == 0) {
-				wcscpy(t.TaskDescribe, L"WebCamIntegrated.exe");
-				StartProcess(t.TaskDescribe);
-			}
-			else {
-				iResult = doTasks(ClientSocket, t);
-			}
+			iResult = doTasks(ClientSocket, t);
 			if (iResult <= 0) break;
 		}
 		else if (iResult == 0) {
