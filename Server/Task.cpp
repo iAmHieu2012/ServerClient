@@ -43,6 +43,7 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 		if (res == 1) {
 			int64_t rc = SendFile(ClientSocket, a.TaskDescribe);
 			if (rc < 0) return -1;
+			else sendStr(ClientSocket, L"File is sent!");
 		}
 	}
 
@@ -51,6 +52,7 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 		if (res == 1) {
 			int64_t rc = SendFile(ClientSocket, a.TaskDescribe);
 			if (rc < 0) return -1;
+			else sendStr(ClientSocket, L"File is sent!");
 		}
 	}
 	
@@ -71,6 +73,7 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 	else if (wcscmp(a.TaskName, L"SENDFILE") == 0) {
 		int64_t rc = SendFile(ClientSocket, a.TaskDescribe);
 		if (rc < 0) return -1;
+		else sendStr(ClientSocket, L"File is sent!");
 	}
 	
 	else if (wcscmp(a.TaskName, L"SCREENCAPTURE") == 0) {
@@ -78,6 +81,7 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 		if (res == 1) {
 			int64_t rc = SendFile(ClientSocket, a.TaskDescribe);
 			if (rc < 0) return -1;
+			else sendStr(ClientSocket, L"File is sent!");
 		}
 	}
 	return res;

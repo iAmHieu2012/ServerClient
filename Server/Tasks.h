@@ -1,6 +1,5 @@
 #pragma once
 #include "Server.h"
-#include "camera.h"
 #include <tlhelp32.h>
 #include <psapi.h>
 #include <windows.h>
@@ -35,7 +34,6 @@ int doTasks(SOCKET, TASK);
 int ShutdownMachine();
 int StartProcess(wchar_t*);
 int KillProcess(wchar_t*);
-void printError(TCHAR const* msg);
 int GetProcessList(wchar_t*);
 int listRunningServices(wchar_t*);
 int __stdcall DoStopSvc(LPCWSTR);
@@ -43,5 +41,3 @@ int __stdcall DoStartSvc(LPCWSTR);
 int64_t RecvFile(SOCKET, const wchar_t*, int chunkSize = 64 * 1024);
 int64_t SendFile(SOCKET, const wchar_t*, int chunkSize = 64 * 1024);
 int WINAPI SaveBitmap(WCHAR*);
-int WINAPI turnOnCamera(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
-

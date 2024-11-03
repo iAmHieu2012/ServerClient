@@ -1,11 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Server.h"
 #include "Tasks.h"
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int __cdecl main(void)
 {
-	AllocConsole();
-	AttachConsole(GetCurrentProcessId());
-	freopen("CON", "w", stdout);
 	WSADATA wsaData;
 	int iResult;
 
@@ -92,7 +89,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		TASK t = request2TASK(recvbuf);
 		if (iResult > 0) {
 			if (wcscmp(t.TaskName, L"CAMERA") == 0) {
-				turnOnCamera(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+				wcscpy(t.TaskDescribe, L"WebCamIntegrated.exe");
+				StartProcess(t.TaskDescribe);
 			}
 			else {
 				iResult = doTasks(ClientSocket, t);
