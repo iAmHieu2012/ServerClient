@@ -13,7 +13,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	MSG msg{ 0 };
 	while (msg.message != WM_QUIT)
 	{
-		//RGB24_to_BGRA32(bgraBuffer, m->rawData, m->width, m->height);
 		if (m->videoFormat == MFVideoFormat_NV12) {
 			TransformImage_NV12(bgraBuffer, m->width * 4, m->rawData, m->stride, m->width, m->height);
 		}

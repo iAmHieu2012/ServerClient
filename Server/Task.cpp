@@ -10,8 +10,10 @@ int recvStr(SOCKET s, wchar_t* buf, int len) {
 
 TASK request2TASK(wchar_t* request) {
 	TASK a;
+	wchar_t* tmp = new wchar_t[DEFAULT_BUFLEN];
+	wcscpy_s(tmp, DEFAULT_BUFLEN, request);
 	wchar_t* nextToken = NULL;
-	a.TaskName = wcstok_s(request, L" ", &nextToken);
+	a.TaskName = wcstok_s(tmp, L" ", &nextToken);
 	a.TaskDescribe = nextToken;
 	return a;
 }
@@ -94,5 +96,6 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 		TASK t = request2TASK(convertedReq);
 		return doTasks(ClientSocket, t);
 	}
+	else sendStr(ClientSocket, L"_unable to do the task_");
 	return res;
 }

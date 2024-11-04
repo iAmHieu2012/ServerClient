@@ -1,6 +1,6 @@
 #include "Client.h"
 
-int __cdecl main(int argc, char** argv)
+int __cdecl main(void)
 {
 	WSADATA wsaData;
 	SOCKET ConnectSocket = INVALID_SOCKET;
@@ -9,13 +9,6 @@ int __cdecl main(int argc, char** argv)
 		hints;
 	int iResult;
 
-	// Validate the parameters
-	if (argc != 2)
-	{
-		printf("usage: %s server-name\n", argv[0]);
-		return 1;
-	}
-
 	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0)
@@ -23,14 +16,18 @@ int __cdecl main(int argc, char** argv)
 		printf("WSAStartup failed with error: %d\n", iResult);
 		return 1;
 	}
-
+	char* ipaddr = new char[100];
+	std::cout << "Enter IP:" << std::endl;
+	std::cin >> ipaddr;
+	std::cin.clear();
+	std::cin.ignore();
 	ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 
 	// Resolve the server address and port
-	iResult = getaddrinfo(argv[1], DEFAULT_PORT, &hints, &result);
+	iResult = getaddrinfo(ipaddr, DEFAULT_PORT, &hints, &result);
 	if (iResult != 0)
 	{
 		printf("getaddrinfo failed with error: %d\n", iResult);
@@ -75,6 +72,7 @@ int __cdecl main(int argc, char** argv)
 	wchar_t* sendbuf = new wchar_t[DEFAULT_BUFLEN];
 	wchar_t* recvbuf = new wchar_t[DEFAULT_BUFLEN];
 	while (1) {
+		fputws(L"Client: ", stdout);
 		fgetws(sendbuf, DEFAULT_BUFLEN, stdin);
 		sendbuf[wcslen(sendbuf) - 1] = L'\0';
 		if (wcslen(sendbuf) == 0) {
@@ -101,38 +99,18 @@ int __cdecl main(int argc, char** argv)
 			iResult = recvStr(ConnectSocket, recvbuf);
 			std::wcout << L"Server: " << recvbuf << std::endl;
 		}
-	}
-	// Receive until the peer closes the connection
-
-	/*memset(recvbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
-	memset(sendbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
-	fputs("Client: ", stdout);
-	fgets(sendbuf, DEFAULT_BUFLEN, stdin);
-	sendbuf[strlen(sendbuf) - 1] = '\0';
-	iResult = send(ConnectSocket, sendbuf, strlen(sendbuf) + 1, 0);
-	iResult = recv(ConnectSocket, recvbuf, DEFAULT_BUFLEN, 0);
-	fprintf(stdout, "Server: %s\n", recvbuf);
-	if (iResult > 0) {
-		if (strcmp(recvbuf, "Machine is shutdown...") == 0
-			|| strcmp(recvbuf, "Starting process is finished") == 0
-			|| strcmp(recvbuf, "Killing process is finished") == 0
-			|| strcmp(recvbuf, "Starting service is finished") == 0
-			|| strcmp(recvbuf, "Stopping service is finished") == 0
-			|| strcmp(recvbuf, "Failed to start process!") == 0
-			|| strcmp(recvbuf, "Failed to kill process!") == 0
-			|| strcmp(recvbuf, "Failed to start service!") == 0
-			|| strcmp(recvbuf, "Failed to stop process!") == 0) {
-			closesocket(ConnectSocket);
-			WSACleanup();
-			return 0;
+		else if (iResult == 0) {
+			printf("Connection closing...\n");
+			break;
 		}
 		else {
-			const int64_t rc = RecvFile(ConnectSocket, std::string(recvbuf), 64 * 1024);
-			if (rc < 0) {
-				std::cout << "Failed to recv file: " << rc << std::endl;
-			}
+			printf("Something went wrong!?...\n");
+			printf("recv failed with error: %d\n", WSAGetLastError());
+			closesocket(ConnectSocket);
+			WSACleanup();
+			return 1;
 		}
-	}*/
+	}
 	closesocket(ConnectSocket);
 	WSACleanup();
 

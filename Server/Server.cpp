@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include "Server.h"
 #include "Tasks.h"
 int __cdecl main(void)
@@ -12,7 +11,6 @@ int __cdecl main(void)
 	struct addrinfo* result = NULL;
 	struct addrinfo hints;
 
-	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0)
 	{
@@ -85,9 +83,12 @@ int __cdecl main(void)
 	wchar_t* recvbuf = new wchar_t[DEFAULT_BUFLEN];
 	while (1) {
 		iResult = recv(ClientSocket, reinterpret_cast<char*>(recvbuf), DEFAULT_BUFLEN, 0);
-		std::wcout << "Client: " << recvbuf << std::endl;
 		TASK t = request2TASK(recvbuf);
 		if (iResult > 0) {
+			std::wcout << "Client: " << recvbuf << std::endl;
+			if (wcscmp(t.TaskName, L"END") == 0) {
+				break;
+			}
 			iResult = doTasks(ClientSocket, t);
 			if (iResult <= 0) break;
 		}
@@ -103,20 +104,6 @@ int __cdecl main(void)
 			return 1;
 		}
 	}
-
-	//memset(recvbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
-	//memset(sendbuf, '\0', sizeof(char) * DEFAULT_BUFLEN);
-
-	// shutdown the connection since we're done
-	iResult = shutdown(ClientSocket, SD_SEND);
-	if (iResult == SOCKET_ERROR)
-	{
-		printf("shutdown failed with error: %d\n", WSAGetLastError());
-		closesocket(ClientSocket);
-		WSACleanup();
-		return 1;
-	}
-
 	// cleanup
 	closesocket(ClientSocket);
 	WSACleanup();
