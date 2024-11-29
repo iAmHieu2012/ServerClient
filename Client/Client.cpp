@@ -1,6 +1,8 @@
 #include "Client.h"
 #include "Mail.h"
 #define SENDER_MAIL "hieughostxyz@gmail.com"
+#define CLIENT_MAIL "hieudapchailo@gmail.com"
+#define CREDENTIALS_PATH "credentials.json"
 std::wstring StringToWString(const std::string& str)
 {
 	std::wstring wstr;
@@ -23,7 +25,7 @@ int __cdecl main(void)
 	else printf("WSAStartup has been initialized successfully\n");
 
 	std::string client_id, client_secret, auth_uri;
-	getCredentials("credentials.json", client_id, client_secret, auth_uri);
+	getCredentials(CREDENTIALS_PATH, client_id, client_secret, auth_uri);
 	char* authorization_code = new char[1024]; // Replace with the authorization code you received
 	std::string redirect_uri = "urn:ietf:wg:oauth:2.0:oob"; // Replace with your redirect URI
 
@@ -155,7 +157,7 @@ int __cdecl main(void)
 					|| wcscmp(t.TaskName, L"SCREENCAPTURE") == 0)
 				{
 					std::string sender_email = SENDER_MAIL;
-					std::string recipient_email = "hieudapchailo@gmail.com";
+					std::string recipient_email = CLIENT_MAIL;
 					std::string subject = "Respone from server "+messageContent[0];
 					std::string body = "The file is generated";
 					std::wstring temp(t.TaskDescribe);
