@@ -61,16 +61,24 @@ The execute files built are placed in separate folders in `\x64\Release`
 
 ## Run
 Before running these execute files, remember:
-	
-+ put `Server.exe` and `WebcamIntegrated.exe` into the same directory on the server machine
+- On the server machine must have these files in the same directory:
+	+ `Server.exe`
+	+ `WebcamIntegrated.exe`
 
-+ put `Client.exe`(required) ,`credentials.json`(required, i've put it in the solution directory), `libcurl.dll`(required), `zlib1.dll` and `token.json` (if it is missing, you will be asked to get a new access_token, so you needn't care 'bout it) into the same directory on the client machine
+- On the client machine must have these files in the same directory:
+	+ `Client.exe`(required)
+  	+ `credentials.json`(required, have been put in solution)
+  	+ `libcurl.dll`(required)
+  	+ `zlib1.dll`(required)
+  	+ `token.json` (optional, have been put in solution. if it is missing, expired or you don't want to use this old token, the client application can get/refresh it. you will be asked to get a new access_token, so you needn't care 'bout it)
 
-if `token.json` is missing/error, the client application will ask you to get the authorization_code, which used to get access_token and refresh_token.
-You must use this account to get the authorization_code: 
+*when `token.json` is missing/error, the client application will ask you to get the authorization_code, which used to get access_token and refresh_token.
+You must use this account to get the authorization_code:
+
 the mail of the client machine :
-mail account: `hieudapchailo@gmail.com`
-password: `Hieu.google.2012`
+
+- mail account: `hieudapchailo@gmail.com`
+- password: `Hieu.google.2012`
 
 ### On the server machine (Run as Administrator to works with WindowsServices)
 ```
