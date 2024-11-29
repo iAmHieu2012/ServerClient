@@ -21,15 +21,9 @@
     <ClCompile Include="fileTransfer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mail.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Mail.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
