@@ -1,5 +1,5 @@
 #include "Tasks.h"
- 
+
 int64_t GetFileSize(const wchar_t* fileName) {
 	// no idea how to get filesizes > 2.1 GB in a C++ kind-of way.
 	// I will cheat and use Microsoft's C-style file API

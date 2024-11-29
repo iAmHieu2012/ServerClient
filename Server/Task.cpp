@@ -87,12 +87,12 @@ int doTasks(SOCKET ClientSocket, TASK a) {
 		}
 	}
 	else if (wcscmp(a.TaskName, L"TURNONCAMERA") == 0) {
-		wchar_t convertedReq[] = L"STARTPROCESS WebcamIntegrated.exe";
+		wchar_t convertedReq[] = L"STARTPROCESS webcam.exe";
 		TASK t = request2TASK(convertedReq);
 		return doTasks(ClientSocket, t);
 	}
 	else if (wcscmp(a.TaskName, L"TURNOFFCAMERA") == 0) {
-		wchar_t convertedReq[] = L"KILLPROCESS WebcamIntegrated.exe";
+		wchar_t convertedReq[] = L"KILLPROCESS webcam.exe";
 		TASK t = request2TASK(convertedReq);
 		return doTasks(ClientSocket, t);
 	}
