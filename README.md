@@ -23,8 +23,6 @@ the C++ Desktop and C++ Gaming workloads.
 + Step 3: Integrate vcpkg to MSBuild:
   ```.\vcpkg.exe integrate install```
 
-Step 3: Set the environment variables: 
-
 
 ## Run
 Clone this repository and open it
