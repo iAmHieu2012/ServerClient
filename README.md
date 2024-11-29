@@ -11,8 +11,7 @@ the C++ Desktop and C++ Gaming workloads.
 
 But when it raise errors about missing `vcpkg` please come back here
 
-### Installing vcpkg
-
+#### Installing vcpkg:
 
 + Step 1: Clone vcpkg repository:
 
@@ -41,6 +40,11 @@ Before building files,
       `#define SENDER_MAIL "abc@gmail.com"`
     
     to the mail which you use to send request to server machine
+
+  + Integrate vcpkg to MSBuild:
+	```
+ 	vcpkg integrate install
+	```
 
   + Make sure that you have `vcpkg.json` and `vcpkg_configuration.json`. If not, follow this
     ```
