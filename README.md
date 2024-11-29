@@ -31,7 +31,7 @@ Clone this repository and open it
 
 ```
 git clone https://github.com/iAmHieu2012/ServerClient.git
-cd ComputerNetworking
+cd ServerClient
 ```
 Before building files, 
 
