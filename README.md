@@ -56,6 +56,7 @@ Before building files,
     ```   
 
 ## Build: choose Release and x64 Configuration
+Open Visual Studio 2022
 
 `Ctrl` + `Shift` + `B`  to build 3 subprojects `Server`, `Client`, `WebcamIntegrated`
 
