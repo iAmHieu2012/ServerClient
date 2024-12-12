@@ -413,6 +413,7 @@ std::vector<std::vector<std::string>> getUnreadMessageContents(const std::string
 					messageContents.push_back(subject);
 					messageContents.push_back(content);
 					IP_tasks.push_back(messageContents);
+					messageContents.clear();
 
 					// Mark the message as read
 					markAsRead(access_token, message_id);

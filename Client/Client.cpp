@@ -158,7 +158,7 @@ int __cdecl main(void)
 				{
 					std::string sender_email = SENDER_MAIL;
 					std::string recipient_email = CLIENT_MAIL;
-					std::string subject = "Respone from server "+messageContent[0];
+					std::string subject = "Respone from server " + messageContent[0];
 					std::string body = "The file is generated";
 					std::wstring temp(t.TaskDescribe);
 					std::string file_path = std::string(temp.begin(), temp.end());
