@@ -134,6 +134,7 @@
     <ClCompile Include="servicesInteract.cpp" />
     <ClCompile Include="Shutdown.cpp" />
     <ClCompile Include="Task.cpp" />
+    <ClCompile Include="webcam.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Server.h" />

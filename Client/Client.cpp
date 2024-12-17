@@ -144,20 +144,28 @@ int __cdecl main(void)
 			fputws(L"Client: ", stdout);
 			wcscpy(sendbuf, StringToWString(messageContent[1]).c_str());
 			//fgetws(sendbuf, DEFAULT_BUFLEN, stdin);
-			std::wcout << sendbuf << std::endl;
 			if (wcslen(sendbuf) == 0) {
 				continue;
 			}
+			if (wcscmp(sendbuf, L"TURNONCAMERA") >= 0) {
+				time_t now = time(0);
+				wchar_t filename[100];
+				swprintf(filename, 100, L"webcam_%lld.avi", (long long)now);
+				wcscpy(sendbuf, (L"TURNONCAMERA " + std::wstring(filename)).c_str());
+			}
+			std::wcout << sendbuf << std::endl;
 			iResult = send(ConnectSocket, reinterpret_cast<const char*>(sendbuf), DEFAULT_BUFLEN, 0);
 			if (iResult > 0) {
 				TASK t = request2TASK(sendbuf);
 				if (wcscmp(t.TaskName, L"LISTPROCESS") == 0
 					|| wcscmp(t.TaskName, L"LISTSERVICES") == 0
 					|| wcscmp(t.TaskName, L"SENDFILE") == 0
-					|| wcscmp(t.TaskName, L"SCREENCAPTURE") == 0)
+					|| wcscmp(t.TaskName, L"SCREENCAPTURE") == 0
+					|| wcscmp(t.TaskName, L"TURNONCAMERA") == 0)
 				{
-					std::string sender_email = SENDER_MAIL;
-					std::string recipient_email = CLIENT_MAIL;
+
+					std::string sender_email = CLIENT_MAIL;
+					std::string recipient_email = SENDER_MAIL;
 					std::string subject = "Respone from server " + messageContent[0];
 					std::string body = "The file is generated";
 					std::wstring temp(t.TaskDescribe);
