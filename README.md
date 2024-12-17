@@ -58,9 +58,9 @@ Before building files,
 ## Build: choose Release and x64 Configuration
 Open Visual Studio 2022
 
-`Ctrl` + `Shift` + `B`  to build 3 subprojects `Server`, `Client`, `WebcamIntegrated`
+`Ctrl` + `Shift` + `B`  to build 2 subprojects `Server` and `Client`.
 
-The execute files built are placed in separate folders in `\x64\Release`
+The execute files built are placed in separate folders in `\x64\Release`.
 
 `curl` and `nlohmann-json` are auto-generate on your machine in `\vcpkg_installed`.
 
@@ -68,7 +68,6 @@ The execute files built are placed in separate folders in `\x64\Release`
 Before running these execute files, remember:
 - On the server machine must have these files in the same directory:
 	+ `Server.exe`
-	+ `WebcamIntegrated.exe`
 
 - On the client machine must have these files in the same directory:
 	+ `Client.exe`(required)
@@ -123,8 +122,6 @@ list of commands:
 `SENDFILE fileName.abc`
 
 `TURNONCAMERA`
-
-`TURNOFFCAMERA`
 
 ## How it works
 
