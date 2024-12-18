@@ -250,9 +250,19 @@ std::string base64Decode(const std::string& input) {
 
 	return output;
 }
+// Function to extract email address from "From" header
+std::string extractEmail(const std::string& fromHeader) {
+	size_t start = fromHeader.find('<');
+	size_t end = fromHeader.find('>');
+	if (start != std::string::npos && end != std::string::npos) {
+		return fromHeader.substr(start + 1, end - start - 1);
+	}
+	// If no < > format is found, return the whole string (fallback)
+	return fromHeader;
+}
 
 // Function to get details of a message by ID
-void getMessageDetails(const std::string& access_token, const std::string& message_id, std::string& subject, std::string& content) {
+void getMessageDetails(const std::string& access_token, const std::string& message_id, std::string& subject, std::string& content, std::string& sender) {
 	CURL* curl;
 	CURLcode res;
 	std::string readBuffer;
@@ -285,6 +295,9 @@ void getMessageDetails(const std::string& access_token, const std::string& messa
 			for (const auto& header : messageResponse["payload"]["headers"]) {
 				if (header["name"] == "Subject") {
 					subject = header["value"];
+				}
+				if (header["name"] == "From") {
+					sender = extractEmail(header["value"]);
 				}
 			}
 
@@ -401,10 +414,10 @@ std::vector<std::vector<std::string>> getUnreadMessageContents(const std::string
 			if (jsonResponse.contains("messages")) {
 				for (const auto& message : jsonResponse["messages"]) {
 					std::string message_id = message["id"];
-					std::string content, subject;
+					std::string content, subject, sender_address;
 
 					// Get message details (content)
-					getMessageDetails(access_token, message_id, subject, content);
+					getMessageDetails(access_token, message_id, subject, content, sender_address);
 					if (subject.length() >= 2 && content.length() >= 2) {
 						content[content.length() - 2] = '\0';
 						content[content.length() - 1] = '\0';
@@ -412,6 +425,7 @@ std::vector<std::vector<std::string>> getUnreadMessageContents(const std::string
 					// Store the content of the message
 					messageContents.push_back(subject);
 					messageContents.push_back(content);
+					messageContents.push_back(sender_address);
 					IP_tasks.push_back(messageContents);
 					messageContents.clear();
 

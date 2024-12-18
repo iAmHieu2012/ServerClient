@@ -1,6 +1,6 @@
 #include "Client.h"
 #include "Mail.h"
-#define SENDER_MAIL "hieughostxyz@gmail.com"
+#define USER_MAIL "hieughostxyz@gmail.com"
 #define CLIENT_MAIL "hieudapchailo@gmail.com"
 #define CREDENTIALS_PATH "credentials.json"
 std::wstring StringToWString(const std::string& str)
@@ -84,6 +84,8 @@ int __cdecl main(void)
 		for (const std::vector<std::string>& messageContent : IP_tasks) {
 			std::cout << "New Message Subject: " << messageContent[0] << std::endl;
 			std::cout << "New Message Content: " << messageContent[1] << std::endl;
+			std::cout << "New Message Sender address: " << messageContent[2] << std::endl;
+			if (messageContent[2] != USER_MAIL) continue;
 			struct addrinfo* result = NULL,
 				* ptr = NULL,
 				hints;
@@ -158,7 +160,7 @@ int __cdecl main(void)
 			if (iResult > 0) {
 				TASK t = request2TASK(sendbuf);
 				std::string sender_email = CLIENT_MAIL;
-				std::string recipient_email = SENDER_MAIL;
+				std::string recipient_email = USER_MAIL;
 				std::string subject = "Respone from server " + messageContent[0];
 
 				if (wcscmp(t.TaskName, L"LISTPROCESS") == 0
