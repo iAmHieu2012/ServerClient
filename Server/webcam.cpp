@@ -1,12 +1,4 @@
-#include <windows.h>
-#include <dshow.h>
-#include <stdio.h>
-#include <conio.h>
-#include <fstream>
-#include <ctime>
-#include <string>
-
-#pragma comment(lib, "strmiids")
+#include "Tasks.h"
 
 class WebcamCapture {
 private:

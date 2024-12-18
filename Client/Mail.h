@@ -12,7 +12,6 @@
 #include <fstream>
 #include <thread>
 #include <chrono>
-#include <conio.h>
 
 // Struct to handle memory for CURL responses
 struct memory {
@@ -50,6 +49,13 @@ bool sendEmailWithAttachment(
 	const std::string& body,
 	const std::string& file_path,
 	const std::string& file_name
+);
+bool sendEmailViaGmailAPI(
+	const std::string& access_token,
+	const std::string& sender_email,
+	const std::string& recipient_email,
+	const std::string& subject,
+	const std::string& body
 );
 std::wstring FileName(const std::wstring&);
 std::string FileName(const std::string&);

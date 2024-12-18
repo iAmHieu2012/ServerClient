@@ -4,7 +4,6 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <conio.h>
 #include "Tasks.h"
 
 // Need to link with Ws2_32.lib

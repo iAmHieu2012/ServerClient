@@ -10,9 +10,12 @@
 #include <fstream>
 #include <string>
 #include <string.h>
-#include <tchar.h>
 #include <wchar.h>
 #include <vector>
+#include <dshow.h>
+#include <ctime>
+
+#pragma comment(lib, "strmiids")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "advapi32.lib")
 

@@ -157,6 +157,10 @@ int __cdecl main(void)
 			iResult = send(ConnectSocket, reinterpret_cast<const char*>(sendbuf), DEFAULT_BUFLEN, 0);
 			if (iResult > 0) {
 				TASK t = request2TASK(sendbuf);
+				std::string sender_email = CLIENT_MAIL;
+				std::string recipient_email = SENDER_MAIL;
+				std::string subject = "Respone from server " + messageContent[0];
+
 				if (wcscmp(t.TaskName, L"LISTPROCESS") == 0
 					|| wcscmp(t.TaskName, L"LISTSERVICES") == 0
 					|| wcscmp(t.TaskName, L"SENDFILE") == 0
@@ -164,9 +168,6 @@ int __cdecl main(void)
 					|| wcscmp(t.TaskName, L"TURNONCAMERA") == 0)
 				{
 
-					std::string sender_email = CLIENT_MAIL;
-					std::string recipient_email = SENDER_MAIL;
-					std::string subject = "Respone from server " + messageContent[0];
 					std::string body = "The file is generated";
 					std::wstring temp(t.TaskDescribe);
 					std::string file_path = std::string(temp.begin(), temp.end());
@@ -175,29 +176,59 @@ int __cdecl main(void)
 					if (rc < 0)
 					{
 						std::cout << "Failed to recv file: " << rc << std::endl;
-					}
-					try {
-						if (sendEmailWithAttachment(access_token, sender_email, recipient_email, subject, body, file_path, file_name)) {
-							std::cout << "Email sent successfully!" << std::endl;
+						try {
+							if (sendEmailViaGmailAPI(access_token, sender_email, recipient_email, subject, "Failed to get the file from server")) {
+								std::cout << "Email sent successfully!" << std::endl;
+							}
+							else {
+								std::cerr << "Failed to send email." << std::endl;
+							}
 						}
+						catch (const std::exception& e) {
+							std::cerr << "Error: " << e.what() << std::endl;
+						}
+					}
+					else {
+						iResult = recvStr(ConnectSocket, recvbuf);
+						if (iResult < 0) std::cout << "Failed to recv str: " << rc << std::endl;
 						else {
-							std::cerr << "Failed to send email." << std::endl;
+							try {
+								if (sendEmailWithAttachment(access_token, sender_email, recipient_email, subject, body, file_path, file_name)) {
+									std::cout << "Email sent successfully!" << std::endl;
+								}
+								else {
+									std::cerr << "Failed to send email." << std::endl;
+								}
+							}
+							catch (const std::exception& e) {
+								std::cerr << "Error: " << e.what() << std::endl;
+							}
 						}
 					}
-					catch (const std::exception& e) {
-						std::cerr << "Error: " << e.what() << std::endl;
+					
+				}
+				else {
+
+					iResult = recvStr(ConnectSocket, recvbuf);
+					if (iResult < 0) continue;
+					else {
+						try {
+							if (sendEmailViaGmailAPI(access_token, sender_email, recipient_email, subject, "Done")) {
+								std::cout << "Email sent successfully!" << std::endl;
+							}
+							else {
+								std::cerr << "Failed to send email." << std::endl;
+							}
+						}
+						catch (const std::exception& e) {
+							std::cerr << "Error: " << e.what() << std::endl;
+						}
 					}
+					std::wcout << L"Server: " << recvbuf << std::endl;
 				}
-				else if (wcscmp(t.TaskName, L"END") == 0 || wcscmp(t.TaskName, L"SHUTDOWN") == 0)
-				{
-					continue;
-				}
-				iResult = recvStr(ConnectSocket, recvbuf);
-				std::wcout << L"Server: " << recvbuf << std::endl;
 			}
 			else if (iResult == 0) {
 				printf("Closing connecting to IP %s...\n", ipaddr);
-				continue;
 			}
 			else {
 				printf("Something went wrong!?...\n");
