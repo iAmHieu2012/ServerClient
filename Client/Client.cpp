@@ -162,7 +162,10 @@ int __cdecl main(void)
 				std::string sender_email = CLIENT_MAIL;
 				std::string recipient_email = USER_MAIL;
 				std::string subject = "Respone from server " + messageContent[0];
-
+				if (wcscmp(t.TaskName, L"END") == 0) {
+					closesocket(ConnectSocket);
+					continue;
+				}
 				if (wcscmp(t.TaskName, L"LISTPROCESS") == 0
 					|| wcscmp(t.TaskName, L"LISTSERVICES") == 0
 					|| wcscmp(t.TaskName, L"SENDFILE") == 0
