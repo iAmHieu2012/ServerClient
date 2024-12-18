@@ -7,11 +7,11 @@ Notice: this project have been tested on
 
 You can skip this if you already have `vcpkg` or 
 Visual Studio 2022 version 17.6 or later, which the vcpkg C/C++ package manager is included as an installable component for 
-the C++ Desktop and C++ Gaming workloads.
+the C++ Desktop and C++ Gaming workloads. All you need to do is opening the Visual Studio Installer and modifying to add vcpkg
 
 But when it raise errors about missing `vcpkg` please come back here
 
-#### Installing vcpkg:
+#### Installing vcpkg (portable) when you don't have it:
 
 + Step 1: Clone vcpkg repository:
 
@@ -37,9 +37,9 @@ Before building files,
 
   + You need to change the macro in `Client.cpp`:
 
-      `#define SENDER_MAIL "abc@gmail.com"`
+      `#define USER_MAIL "abc@gmail.com"`
     
-    to the mail which you use to send request to server machine
+    abc@gmail.com to the mail which you use to send request to server machine
 
   + Integrate vcpkg to MSBuild:
 	```
@@ -53,6 +53,7 @@ Before building files,
     vcpkg new --application
     vcpkg add port curl
     vcpkg add port nlohmann-json
+	vcpkg integrate install
     ```   
 
 ## Build: choose Release and x64 Configuration
@@ -93,7 +94,7 @@ server.exe
 client.exe
 ```
 
-use `SENDER_MAIL` to send email to the client email `hieudapchailo@gmail.com` with:
+use `USER_MAIL` to send email to the client email `hieudapchailo@gmail.com` with:
 
 	To: hieudapchailo@gmail.com
 
