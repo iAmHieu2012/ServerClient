@@ -110,7 +110,7 @@ public:
         if (pControl) {
             pControl->Run();
             clock_t start_t = clock();
-            while ((clock() - start_t) / CLOCKS_PER_SEC <= sec + 1) {
+            while ((clock() - start_t) / CLOCKS_PER_SEC <= sec) {
                 continue;
             }
             pControl->Stop();
