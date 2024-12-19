@@ -27,11 +27,10 @@ But when it raise errors about missing `vcpkg` please come back here
 
 
 ## Implementing
-Clone this repository and open it
+Clone this repository and open `Server_Client.sln`:
 
 ```
 git clone https://github.com/iAmHieu2012/ServerClient.git
-cd ServerClient
 ```
 Before building files, 
 
@@ -41,20 +40,22 @@ Before building files,
     
     abc@gmail.com to the mail which you use to send request to server machine
 
-  + Integrate vcpkg to MSBuild:
+  + If you are using a portable vcpkg, run:
 	```
- 	vcpkg integrate install
-	```
-
+ 	$env:VCPKG_ROOT = "C:\path\to\vcpkg"
+    	$env:PATH = "$env:VCPKG_ROOT;$env:PATH"
+ 	```
   + Make sure that you have `vcpkg.json` and `vcpkg_configuration.json`. If not, follow this
     ```
-    $env:VCPKG_ROOT = "C:\path\to\vcpkg"
-    $env:PATH = "$env:VCPKG_ROOT;$env:PATH"
     vcpkg new --application
     vcpkg add port curl
     vcpkg add port nlohmann-json
-	vcpkg integrate install
+    vcpkg integrate install
     ```   
+  + Else, just integrate vcpkg to MSBuild:
+	```
+ 	vcpkg integrate install
+	```
 
 ## Build: choose Release and x64 Configuration
 Open Visual Studio 2022
