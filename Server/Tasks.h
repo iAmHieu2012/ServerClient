@@ -44,4 +44,4 @@ int __stdcall DoStartSvc(LPCWSTR);
 int64_t RecvFile(SOCKET, const wchar_t*, int chunkSize = 64 * 1024);
 int64_t SendFile(SOCKET, const wchar_t*, int chunkSize = 64 * 1024);
 int WINAPI SaveBitmap(WCHAR*);
-int webcam(wchar_t* filename);
+int webcam(const wchar_t* filename);
