@@ -1,4 +1,4 @@
-﻿#include "Server.h"
+#include "Server.h"
 #include <windows.h>
 #include <string>
 #include <vector>
@@ -143,11 +143,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
 
-        // Tạo một bàn chải màu vàng nhạt
         HBRUSH hBrush = CreateSolidBrush(RGB(255, 255, 204));
         FillRect(hdc, &ps.rcPaint, hBrush);
 
-        // Giải phóng bàn chải sau khi sử dụng
         DeleteObject(hBrush);
 
         EndPaint(hwnd, &ps);
@@ -156,11 +154,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     case WM_CTLCOLORBTN: {
         HDC hdcButton = (HDC)wParam;
 
-        // Thiết lập màu nền nút là xanh nhạt
         SetBkColor(hdcButton, RGB(173, 216, 230));
-        SetTextColor(hdcButton, RGB(0, 0, 0)); // Màu chữ đen
+        SetTextColor(hdcButton, RGB(0, 0, 0));
 
-        // Tạo một bàn chải màu xanh nhạt để tô nền
         static HBRUSH hBrushButton = CreateSolidBrush(RGB(173, 216, 230));
         return (LRESULT)hBrushButton;
     }

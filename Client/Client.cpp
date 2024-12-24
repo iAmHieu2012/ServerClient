@@ -1,4 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #include "Mail.h"
 #include "Client.h"
 
@@ -263,9 +263,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	switch (uMsg) {
 	case WM_CTLCOLORBTN: {
 		HDC hdcButton = (HDC)wParam;
-		SetBkColor(hdcButton, RGB(255, 0, 0)); // Chỉnh màu nền là đỏ
-		SetTextColor(hdcButton, RGB(255, 255, 255)); // Chỉnh màu chữ là trắng
-		return (LRESULT)GetStockObject(DC_BRUSH); // Sử dụng brush có sẵn
+		SetBkColor(hdcButton, RGB(255, 0, 0)); 
+		SetTextColor(hdcButton, RGB(255, 255, 255)); 
+		return (LRESULT)GetStockObject(DC_BRUSH); 
 	}
 	case WM_CREATE:
 		CreateWindow(L"STATIC", L"AuthCode:",
@@ -317,22 +317,20 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
 
-		// Tạo một bàn chải màu vàng nhạt
 		HBRUSH hBrush = CreateSolidBrush(RGB(255, 255, 204));
 		FillRect(hdc, &ps.rcPaint, hBrush);
 
-		// Giải phóng bàn chải sau khi sử dụng
 		DeleteObject(hBrush);
 
 		EndPaint(hwnd, &ps);
 	}
-	
+
 	case WM_COMMAND:
 		if (LOWORD(wParam) == ID_BUTTONLINK) {
 
 			std::string auth_uri, client_id, client_secret;
 			std::string link = Authlink(client_id, client_secret, auth_uri);
-			AppendText(hOutput,link + "\n");
+			AppendText(hOutput, link + "\n");
 		}
 		if (LOWORD(wParam) == ID_BUTTON) {
 			char* rowsText = new char[1024];

@@ -238,7 +238,7 @@ int webcam(const wchar_t* filename) {
         return 0;
     }
 
-    camRec.run(1);
+    camRec.run(3);
 
     return 1;
 }
