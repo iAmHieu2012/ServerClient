@@ -1,8 +1,23 @@
-#include "Client.h"
+#define _CRT_SECURE_NO_WARNINGS
 #include "Mail.h"
+#include "Client.h"
+
+#define ID_AUTHCODE 101
+#define ID_BUTTON 103
+#define ID_BUTTONLINK 102
+#define ID_BUTTONMAIL 105
+#define ID_OUTPUT 104
 #define USER_MAIL "hieughostxyz@gmail.com"
 #define CLIENT_MAIL "hieudapchailo@gmail.com"
 #define CREDENTIALS_PATH "credentials.json"
+std::string wcharToString(const wchar_t* wstr) {
+	size_t len = std::wcslen(wstr) + 1;
+	char* buffer = new char[len];
+	std::wcstombs(buffer, wstr, len);
+	std::string str(buffer);
+	delete[] buffer;
+	return str;
+}
 std::wstring StringToWString(const std::string& str)
 {
 	std::wstring wstr;
@@ -11,51 +26,37 @@ std::wstring StringToWString(const std::string& str)
 	mbstowcs_s(&size, &wstr[0], wstr.size() + 1, str.c_str(), str.size());
 	return wstr;
 }
-int __cdecl main(void)
-{
-	WSADATA wsaData;
-	int iResult;
+std::string Authlink(std::string& client_id, std::string& client_secret, std::string& auth_uri) {
+	getCredentials(CREDENTIALS_PATH, client_id, client_secret, auth_uri);
+	std::string redirect_uri = "urn:ietf:wg:oauth:2.0:oob"; // Replace with your redirect URI
 
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0)
-	{
-		printf("WSAStartup failed with error: %d\n", iResult);
-		return 1;
-	}
-	else printf("WSAStartup has been initialized successfully\n");
+	std::string scope = "https://www.googleapis.com/auth/gmail.modify";
+
+	return auth_uri + "?" + "client_id=" + client_id + "&redirect_uri=" + redirect_uri + "&response_type=code" + "&scope=" + scope;
+}
+
+std::string getAccessToken(char*& authorization_code) {
 
 	std::string client_id, client_secret, auth_uri;
-	getCredentials(CREDENTIALS_PATH, client_id, client_secret, auth_uri);
-	char* authorization_code = new char[1024]; // Replace with the authorization code you received
+	Authlink(client_id, client_secret, auth_uri);
 	std::string redirect_uri = "urn:ietf:wg:oauth:2.0:oob"; // Replace with your redirect URI
 
 	std::string access_token;
 	std::string refresh_token;
 	std::string new_access_token;
 
-	std::string scope = "https://www.googleapis.com/auth/gmail.modify";
-	struct memory chunk = { 0 };
-
-	std::string linkAuth = auth_uri + "?" + "client_id=" + client_id + "&redirect_uri=" + redirect_uri + "&response_type=code" + "&scope=" + scope;
-
 	// Replace with your values
-	const char* authorization_url = linkAuth.c_str();
 	readToken("token.json", access_token, refresh_token);
 	if (!checkExistAccessTokenFile("token.json") || access_token == "" || refresh_token == "") {
-		// Redirect the user to the authorization URL
-		printf("Please visit this URL to authorize the application: %s\n", authorization_url);
-
-		// Wait for the user to authorize and get redirected back
-		printf("Enter the authorization code: ");
-		fgets(authorization_code, 1024, stdin);
 
 		//Exchange auth code for access token
 		if (getAccessTokenFromAuthorizationCode(client_id, client_secret, std::string(authorization_code), redirect_uri, access_token, refresh_token)) {
 			// Save access token to file
 			saveAccessTokenToFile("token.json", access_token, refresh_token);
+			return access_token;
 		}
 		else {
-			std::cerr << "Failed to exchange authorization code for access token." << std::endl;
+			return "";
 		}
 	}
 
@@ -66,65 +67,69 @@ int __cdecl main(void)
 			if (refreshAccessToken(client_id, client_secret, refresh_token, new_access_token)) {
 				access_token = new_access_token;  // Update the access token
 				saveAccessTokenToFile("token.json", access_token, refresh_token);
+				return access_token;
 			}
 			else {
-				std::cerr << "Failed to refresh the access token.\n";
+				return "";
 			}
 		}
+		return access_token;
 	}
+}
 
-	// Now you can use the valid (or refreshed) access_token to make API requests
-	std::cout << "Using access token: " << access_token << std::endl;
-	////////////////////////////////////////////
+std::vector<std::vector<std::string>> IP_tasks;
+std::string access, logHistory;
+
+
+// Append text to the output window (wide string)
+void AppendText(HWND hOutput, const std::wstring& newText) {
+	int length = GetWindowTextLengthW(hOutput);
+	std::wstring currentText(length, L'\0');
+	GetWindowTextW(hOutput, &currentText[0], length + 1);
+	currentText += newText + L"\r\n";
+	SetWindowTextW(hOutput, currentText.c_str());
+}
+
+// Append text to the output window (narrow string)
+void AppendText(HWND hOutput, const std::string& newText) {
+	AppendText(hOutput, StringToWString(newText));
+}
+
+// Main processing thread
+void MessageProcessingThread(HWND hOutput) {
 	while (true) {
-		system("cls");
-		std::cout << "Checking for new messages..." << std::endl;
+		{
+			AppendText(hOutput, L"Checking for new messages...\n");
+		}
 
-		std::vector<std::vector<std::string>> IP_tasks = getUnreadMessageContents(access_token);
-		for (const std::vector<std::string>& messageContent : IP_tasks) {
-			std::cout << "New Message Subject: " << messageContent[0] << std::endl;
-			std::cout << "New Message Content: " << messageContent[1] << std::endl;
-			std::cout << "New Message Sender address: " << messageContent[2] << std::endl;
+		std::vector<std::vector<std::string>> IP_tasks = getUnreadMessageContents(access);
+		for (const auto& messageContent : IP_tasks) {
+			AppendText(hOutput, "New Message Subject: " + messageContent[0]);
+			AppendText(hOutput, "New Message Content: " + messageContent[1]);
+			AppendText(hOutput, "New Message Sender address: " + messageContent[2]);
+
 			if (messageContent[2] != USER_MAIL) continue;
-			struct addrinfo* result = NULL,
-				* ptr = NULL,
-				hints;
-			int iResult;
-			char* ipaddr = new char[100];
-			strcpy(ipaddr, messageContent[0].c_str());
-			ZeroMemory(&hints, sizeof(hints));
+
+			std::string ipaddr = messageContent[0];
+			struct addrinfo hints = {}, * result = nullptr;
+
 			hints.ai_family = AF_UNSPEC;
 			hints.ai_socktype = SOCK_STREAM;
 			hints.ai_protocol = IPPROTO_TCP;
 
-			// Resolve the server address and port
-			iResult = getaddrinfo(ipaddr, DEFAULT_PORT, &hints, &result);
-			if (iResult != 0)
-			{
-				printf("getaddrinfo failed with error: %d\n", iResult);
+			int iResult = getaddrinfo(ipaddr.c_str(), DEFAULT_PORT, &hints, &result);
+			if (iResult != 0) {
+				AppendText(hOutput, "getaddrinfo failed with error: " + std::to_string(iResult));
 				WSACleanup();
-				return 1;
+				continue;
 			}
 
-			// Attempt to connect to an address until one succeeds
 			SOCKET ConnectSocket = INVALID_SOCKET;
-			for (ptr = result; ptr != NULL; ptr = ptr->ai_next)
-			{
+			for (auto ptr = result; ptr != nullptr; ptr = ptr->ai_next) {
+				ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+				if (ConnectSocket == INVALID_SOCKET) continue;
 
-				// Create a SOCKET for connecting to server
-				ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
-					ptr->ai_protocol);
-				if (ConnectSocket == INVALID_SOCKET)
-				{
-					printf("socket failed with error: %ld\n", WSAGetLastError());
-					WSACleanup();
-					return 1;
-				}
-
-				// Connect to server.
-				iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
-				if (iResult == SOCKET_ERROR)
-				{
+				if (connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen) == SOCKET_ERROR) {
 					closesocket(ConnectSocket);
 					ConnectSocket = INVALID_SOCKET;
 					continue;
@@ -134,33 +139,30 @@ int __cdecl main(void)
 
 			freeaddrinfo(result);
 
-			if (ConnectSocket == INVALID_SOCKET)
-			{
-				printf("Unable to connect to server!\n");
-				WSACleanup();
-				return 1;
-			}
-
-			wchar_t* sendbuf = new wchar_t[DEFAULT_BUFLEN];
-			wchar_t* recvbuf = new wchar_t[DEFAULT_BUFLEN];
-			fputws(L"Client: ", stdout);
-			wcscpy(sendbuf, StringToWString(messageContent[1]).c_str());
-			//fgetws(sendbuf, DEFAULT_BUFLEN, stdin);
-			if (wcslen(sendbuf) == 0) {
+			if (ConnectSocket == INVALID_SOCKET) {
+				AppendText(hOutput, L"Unable to connect to server!\n");
 				continue;
 			}
+
+			wchar_t sendbuf[DEFAULT_BUFLEN];
+			wchar_t recvbuf[DEFAULT_BUFLEN];
+
+			wcscpy_s(sendbuf, StringToWString(messageContent[1]).c_str());
 			if (wcscmp(sendbuf, L"TURNONCAMERA") >= 0) {
 				time_t now = time(0);
 				wchar_t filename[100];
 				swprintf(filename, 100, L"webcam_%lld.avi", (long long)now);
 				wcscpy(sendbuf, (L"TURNONCAMERA " + std::wstring(filename)).c_str());
 			}
-			std::wcout << sendbuf << std::endl;
+
+			AppendText(hOutput, L"Client: " + std::wstring(sendbuf));
+
 			iResult = send(ConnectSocket, reinterpret_cast<const char*>(sendbuf), DEFAULT_BUFLEN, 0);
 			if (iResult > 0) {
+
 				TASK t = request2TASK(sendbuf);
-				std::string sender_email = CLIENT_MAIL;
-				std::string recipient_email = USER_MAIL;
+				std::string sender_email = USER_MAIL;
+				std::string recipient_email = messageContent[2];
 				std::string subject = "Respone from server " + messageContent[0];
 				if (wcscmp(t.TaskName, L"END") == 0) {
 					closesocket(ConnectSocket);
@@ -182,7 +184,7 @@ int __cdecl main(void)
 					{
 						std::cout << "Failed to recv file: " << rc << std::endl;
 						try {
-							if (sendEmailViaGmailAPI(access_token, sender_email, recipient_email, subject, "Failed to get the file from server")) {
+							if (sendEmailViaGmailAPI(access, sender_email, recipient_email, subject, "Failed to get the file from server")) {
 								std::cout << "Email sent successfully!" << std::endl;
 							}
 							else {
@@ -198,7 +200,7 @@ int __cdecl main(void)
 						if (iResult < 0) std::cout << "Failed to recv str: " << rc << std::endl;
 						else {
 							try {
-								if (sendEmailWithAttachment(access_token, sender_email, recipient_email, subject, body, file_path, file_name)) {
+								if (sendEmailWithAttachment(access, sender_email, recipient_email, subject, body, file_path, file_name)) {
 									std::cout << "Email sent successfully!" << std::endl;
 								}
 								else {
@@ -210,7 +212,7 @@ int __cdecl main(void)
 							}
 						}
 					}
-					
+
 				}
 				else {
 
@@ -218,7 +220,7 @@ int __cdecl main(void)
 					if (iResult < 0) continue;
 					else {
 						try {
-							if (sendEmailViaGmailAPI(access_token, sender_email, recipient_email, subject, "Done")) {
+							if (sendEmailViaGmailAPI(access, sender_email, recipient_email, subject, "Done")) {
 								std::cout << "Email sent successfully!" << std::endl;
 							}
 							else {
@@ -243,12 +245,109 @@ int __cdecl main(void)
 				continue;
 			}
 			closesocket(ConnectSocket);
-			// Wait for the specified interval before checking again
 		}
+
 		std::this_thread::sleep_for(std::chrono::seconds(5));
 	}
-	WSACleanup();
+}
+
+// Window procedure
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	static HWND hAuthCode, hButton, hButtonLink, hButtonMail, hOutput;
+
+	switch (uMsg) {
+	case WM_CREATE:
+		CreateWindow(L"STATIC", L"AuthCode:",
+			WS_VISIBLE | WS_CHILD,
+			20, 20, 50, 20,
+			hwnd, NULL, NULL, NULL);
+		hAuthCode = CreateWindow(L"EDIT", L"",
+			WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
+			70, 20, 300, 20,
+			hwnd, (HMENU)ID_AUTHCODE, NULL, NULL);
+
+		// Create a button to generate the token
+		hButton = CreateWindow(L"BUTTON", L"Generate token",
+			WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+			600, 20, 120, 25,
+			hwnd, (HMENU)ID_BUTTON, NULL, NULL);
+		// Create a button to generate the auth link
+		hButtonLink = CreateWindow(L"BUTTON", L"Generate link",
+			WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+			370, 20, 120, 25,
+			hwnd, (HMENU)ID_BUTTONLINK, NULL, NULL);
+		// Create a button to generate the mail
+		hButtonMail = CreateWindow(L"BUTTON", L"Generate mail",
+			WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+			600, 100, 120, 25,
+			hwnd, (HMENU)ID_BUTTONMAIL, NULL, NULL);
+
+		// Create a text area for output
+		hOutput = CreateWindowA("EDIT", "",
+			WS_VISIBLE | WS_CHILD | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_READONLY,
+			20, 60, 470, 200,
+			hwnd, (HMENU)ID_OUTPUT, NULL, NULL);
+
+		break;
+	case WM_COMMAND:
+		if (LOWORD(wParam) == ID_BUTTONLINK) {
+
+			std::string auth_uri, client_id, client_secret;
+			std::string link = Authlink(client_id, client_secret, auth_uri);
+			logHistory += link + "\r\n";
+			SetWindowTextA(hOutput, logHistory.c_str());
+		}
+		if (LOWORD(wParam) == ID_BUTTON) {
+			char* rowsText = new char[1024];
+			GetWindowTextA(hAuthCode, rowsText, 1024);
+			access = getAccessToken(rowsText);
+			logHistory += access + "\r\n";
+			SetWindowTextA(hOutput, logHistory.c_str());
+			SetWindowTextA(hAuthCode, "");
+		}
+		if (LOWORD(wParam) == ID_BUTTONMAIL) {
+			std::thread(MessageProcessingThread, hOutput).detach();
+		}
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+
+	default:
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	}
+	return 0;
+}
+
+// Main entry point
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) {
+	const wchar_t CLASS_NAME[] = L"GMAIL GENERATOR";
+
+	WNDCLASS wc = {};
+	wc.lpfnWndProc = WindowProc;
+	wc.hInstance = hInstance;
+	wc.lpszClassName = CLASS_NAME;
+
+	RegisterClass(&wc);
+
+	HWND hwnd = CreateWindowEx(
+		0, CLASS_NAME, L"Email Generator",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720,
+		NULL, NULL, hInstance, NULL
+	);
+
+	if (hwnd == NULL) {
+		return 0;
+	}
+
+	ShowWindow(hwnd, nCmdShow);
+
+	MSG msg = {};
+	while (GetMessage(&msg, NULL, 0, 0)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
 
 	return 0;
-
 }

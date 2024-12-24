@@ -1,103 +1,175 @@
 #include "Server.h"
-#include "Tasks.h"
-int __cdecl main(void)
-{
-	WSADATA wsaData;
-	int iResult;
+#include <windows.h>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <ctime>
+#include <cstdlib>
+#include <iomanip>
+#include <thread>
+//#include <mutex>
 
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0)
-	{
-		printf("WSAStartup failed with error: %d\n", iResult);
-		return 1;
-	}
-	else printf("WSAStartup has been initialized successfully\n");
+#define ID_OUTPUT 104
 
+//std::string logHistory = ""; // Text in the output
+//std::mutex logMutex;         // To protect shared logHistory across threads
 
-	struct addrinfo* result = NULL;
-	struct addrinfo hints;
+// Helper function to append text to the output window
+void AppendText(HWND hOutput, const std::wstring& newText) {
+    //std::lock_guard<std::mutex> lock(logMutex);
 
+    int length = GetWindowTextLengthW(hOutput);
+    std::wstring currentText(length, L'\0');
+    GetWindowTextW(hOutput, &currentText[0], length + 1);
 
-	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags = AI_PASSIVE;
+    currentText += newText + L"\r\n";
+    SetWindowTextW(hOutput, currentText.c_str());
+}
 
-	// Resolve the server address and port
-	iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
-	if (iResult != 0)
-	{
-		printf("getaddrinfo failed with error: %d\n", iResult);
-		return 1;
-	}
-	int shutdownServerApplication = 0;
-	while (shutdownServerApplication == 0) {
+// Network handler (runs in a separate thread)
+void NetworkHandler(HWND hOutput) {
+    WSADATA wsaData;
+    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != 0) {
+        AppendText(hOutput, L"WSAStartup failed with error: " + std::to_wstring(iResult));
+        return;
+    }
+    AppendText(hOutput, L"WSAStartup initialized successfully.");
 
-		// Create a SOCKET for the server to listen for client connections.
-		SOCKET ListenSocket = INVALID_SOCKET;
-		ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-		if (ListenSocket == INVALID_SOCKET)
-		{
-			printf("socket failed with error: %ld\n", WSAGetLastError());
-			freeaddrinfo(result);
-			return 1;
-		}
+    struct addrinfo* result = nullptr;
+    struct addrinfo hints;
 
-		// Setup the TCP listening socket
-		iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
-		if (iResult == SOCKET_ERROR)
-		{
-			printf("bind failed with error: %d\n", WSAGetLastError());
-			freeaddrinfo(result);
-			closesocket(ListenSocket);
-			return 1;
-		}
+    ZeroMemory(&hints, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_flags = AI_PASSIVE;
 
-		iResult = listen(ListenSocket, SOMAXCONN);
-		if (iResult == SOCKET_ERROR)
-		{
-			printf("listen failed with error: %d\n", WSAGetLastError());
-			closesocket(ListenSocket);
-			return 1;
-		}
+    iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
+    if (iResult != 0) {
+        AppendText(hOutput, L"getaddrinfo failed with error: " + std::to_wstring(iResult));
+        WSACleanup();
+        return;
+    }
 
-		// Accept a client socket
-		SOCKET ClientSocket = INVALID_SOCKET;
-		ClientSocket = accept(ListenSocket, NULL, NULL);
-		if (ClientSocket == INVALID_SOCKET)
-		{
-			printf("accept failed with error: %d\n", WSAGetLastError());
-			closesocket(ListenSocket);
-			return 1;
-		}
+    SOCKET ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    if (ListenSocket == INVALID_SOCKET) {
+        AppendText(hOutput, L"Socket creation failed with error: " + std::to_wstring(WSAGetLastError()));
+        freeaddrinfo(result);
+        WSACleanup();
+        return;
+    }
 
-		// No longer need server socket
-		closesocket(ListenSocket);
+    iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+    if (iResult == SOCKET_ERROR) {
+        AppendText(hOutput, L"Bind failed with error: " + std::to_wstring(WSAGetLastError()));
+        freeaddrinfo(result);
+        closesocket(ListenSocket);
+        WSACleanup();
+        return;
+    }
+    freeaddrinfo(result);
 
-		// Receive until the peer shuts down the connection
-		wchar_t* sendbuf = new wchar_t[DEFAULT_BUFLEN];
-		wchar_t* recvbuf = new wchar_t[DEFAULT_BUFLEN];
-		iResult = recv(ClientSocket, reinterpret_cast<char*>(recvbuf), DEFAULT_BUFLEN, 0);
-		TASK t = request2TASK(recvbuf);
-		if (iResult > 0) {
-			std::wcout << "Client: " << recvbuf << std::endl;
-			if (wcscmp(t.TaskName, L"END") == 0) {
-				shutdownServerApplication = 1;
-			}
-			iResult = doTasks(ClientSocket, t);
-			if (iResult <= 0) continue;
-		}
-		else if (iResult == 0) {
-			printf("Connection closing...\n");
-		}
-		else {
-			printf("Something went wrong!?...\n");
-			printf("recv failed with error: %d\n", WSAGetLastError());
-		}
-		// cleanup
-		closesocket(ClientSocket);
-	}
-	WSACleanup();
-	return 0;
+    iResult = listen(ListenSocket, SOMAXCONN);
+    if (iResult == SOCKET_ERROR) {
+        AppendText(hOutput, L"Listen failed with error: " + std::to_wstring(WSAGetLastError()));
+        closesocket(ListenSocket);
+        WSACleanup();
+        return;
+    }
+    AppendText(hOutput, L"Server listening on port " DEFAULT_PORT);
+
+    while (true) {
+        SOCKET ClientSocket = accept(ListenSocket, NULL, NULL);
+        if (ClientSocket == INVALID_SOCKET) {
+            AppendText(hOutput, L"Accept failed with error: " + std::to_wstring(WSAGetLastError()));
+            closesocket(ListenSocket);
+            WSACleanup();
+            return;
+        }
+        AppendText(hOutput, L"Client connected.");
+
+        wchar_t recvbuf[DEFAULT_BUFLEN] = { 0 };
+        iResult = recv(ClientSocket, reinterpret_cast<char*>(recvbuf), DEFAULT_BUFLEN, 0);
+        if (iResult > 0) {
+            AppendText(hOutput, L"Client: " + std::wstring(recvbuf));
+
+            // Parse the request into a TASK structure
+            TASK task = request2TASK(recvbuf);
+
+            // Process the task
+            int taskResult = doTasks(ClientSocket, task);
+            if (taskResult <= 0) {
+                AppendText(hOutput, L"Error while processing task.");
+            }
+        }
+        else if (iResult == 0) {
+            AppendText(hOutput, L"Connection closing...");
+        }
+        else {
+            AppendText(hOutput, L"Recv failed with error: " + std::to_wstring(WSAGetLastError()));
+        }
+        closesocket(ClientSocket);
+    }
+
+    closesocket(ListenSocket);
+    WSACleanup();
+}
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    static HWND hOutput;
+
+    switch (uMsg) {
+    case WM_CREATE:
+        // Create a text area for output
+        hOutput = CreateWindowA(
+            "EDIT", "",
+            WS_VISIBLE | WS_CHILD | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_READONLY,
+            20, 60, 470, 200,
+            hwnd, (HMENU)ID_OUTPUT, NULL, NULL);
+
+        // Start the network handler thread
+        std::thread(NetworkHandler, hOutput).detach();
+        break;
+
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+
+    default:
+        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    }
+
+    return 0;
+}
+
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) {
+    const wchar_t CLASS_NAME[] = L"GMAIL GENERATOR";
+
+    WNDCLASS wc = {};
+    wc.lpfnWndProc = WindowProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = CLASS_NAME;
+
+    RegisterClass(&wc);
+
+    HWND hwnd = CreateWindowEx(
+        0, CLASS_NAME, L"Email Generator",
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720,
+        NULL, NULL, hInstance, NULL);
+
+    if (hwnd == NULL) {
+        return 0;
+    }
+
+    ShowWindow(hwnd, nCmdShow);
+
+    MSG msg = {};
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    return 0;
 }

@@ -92,7 +92,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -120,7 +120,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -131,6 +131,7 @@
     <ClCompile Include="fileTransfer.cpp" />
     <ClCompile Include="screenCapture.cpp" />
     <ClCompile Include="Server.cpp" />
+    <ClCompile Include="tempServer.cpp" />
     <ClCompile Include="servicesInteract.cpp" />
     <ClCompile Include="Shutdown.cpp" />
     <ClCompile Include="Task.cpp" />
