@@ -1,4 +1,4 @@
-#include "Server.h"
+﻿#include "Server.h"
 #include <windows.h>
 #include <string>
 #include <vector>
@@ -124,6 +124,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
     switch (uMsg) {
     case WM_CREATE:
+        CreateWindow(L"STATIC", L"Status:",
+            WS_VISIBLE | WS_CHILD,
+            20, 40, 80, 20,
+            hwnd, NULL, NULL, NULL);
         // Create a text area for output
         hOutput = CreateWindowA(
             "EDIT", "",
@@ -139,12 +143,28 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
 
-        // Perform any custom painting here if needed
-        FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+        // Tạo một bàn chải màu vàng nhạt
+        HBRUSH hBrush = CreateSolidBrush(RGB(255, 255, 204));
+        FillRect(hdc, &ps.rcPaint, hBrush);
+
+        // Giải phóng bàn chải sau khi sử dụng
+        DeleteObject(hBrush);
 
         EndPaint(hwnd, &ps);
         break;
     }
+    case WM_CTLCOLORBTN: {
+        HDC hdcButton = (HDC)wParam;
+
+        // Thiết lập màu nền nút là xanh nhạt
+        SetBkColor(hdcButton, RGB(173, 216, 230));
+        SetTextColor(hdcButton, RGB(0, 0, 0)); // Màu chữ đen
+
+        // Tạo một bàn chải màu xanh nhạt để tô nền
+        static HBRUSH hBrushButton = CreateSolidBrush(RGB(173, 216, 230));
+        return (LRESULT)hBrushButton;
+    }
+
 
     case WM_DESTROY:
         PostQuitMessage(0);
@@ -170,7 +190,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     HWND hwnd = CreateWindowEx(
         0, CLASS_NAME, L"Server Application",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720,
+        CW_USEDEFAULT, CW_USEDEFAULT, 600, 360,
         NULL, NULL, hInstance, NULL);
 
     if (hwnd == NULL) {
