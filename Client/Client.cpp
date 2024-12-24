@@ -7,9 +7,11 @@
 #define ID_BUTTONLINK 102
 #define ID_BUTTONMAIL 105
 #define ID_OUTPUT 104
-#define USER_MAIL "hieughostxyz@gmail.com"
-#define CLIENT_MAIL "hieudapchailo@gmail.com"
-#define CREDENTIALS_PATH "credentials.json"
+#define ID_USERMAIL 201
+#define ID_SUBMITMAIL 202
+#define CLIENT_MAIL "hieudapchailo@gmail.com"//immutable 
+#define CREDENTIALS_PATH "credentials.json"//immutable
+std::string USER_MAIL = "hieughostxyz@gmail.com";
 std::string wcharToString(const wchar_t* wstr) {
 	size_t len = std::wcslen(wstr) + 1;
 	char* buffer = new char[len];
@@ -88,6 +90,9 @@ void AppendText(HWND hOutput, const std::wstring& newText) {
 	GetWindowTextW(hOutput, &currentText[0], length + 1);
 	currentText += newText + L"\r\n";
 	SetWindowTextW(hOutput, currentText.c_str());
+	int textLength = GetWindowTextLength(hOutput);
+	SendMessage(hOutput, EM_SETSEL, textLength, textLength);
+	SendMessage(hOutput, EM_SCROLLCARET, 0, 0);
 }
 
 // Append text to the output window (narrow string)
@@ -96,7 +101,7 @@ void AppendText(HWND hOutput, const std::string& newText) {
 }
 
 // Main processing thread
-void MessageProcessingThread(HWND hOutput) {
+void mainClient(HWND hOutput) {
 	while (true) {
 		{
 			AppendText(hOutput, L"Checking for new messages...\n");
@@ -253,7 +258,7 @@ void MessageProcessingThread(HWND hOutput) {
 
 // Window procedure
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	static HWND hAuthCode, hButton, hButtonLink, hButtonMail, hOutput;
+	static HWND hAuthCode, hButton, hButtonLink, hButtonMail, hOutput, hUserMail, hSubmitMail;
 
 	switch (uMsg) {
 	case WM_CREATE:
@@ -287,28 +292,56 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			WS_VISIBLE | WS_CHILD | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL | ES_READONLY,
 			20, 60, 470, 200,
 			hwnd, (HMENU)ID_OUTPUT, NULL, NULL);
-
+		CreateWindow(L"STATIC", L"Mail address",
+			WS_VISIBLE | WS_CHILD,
+			20, 600, 50, 20,
+			hwnd, NULL, NULL, NULL);
+		hSubmitMail = CreateWindow(L"BUTTON", L"Change mail address",
+			WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+			370, 600, 120, 25,
+			hwnd, (HMENU)ID_SUBMITMAIL, NULL, NULL);
+		hUserMail = CreateWindow(L"EDIT", L"",
+			WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
+			70, 600, 300, 20,
+			hwnd, (HMENU)ID_USERMAIL, NULL, NULL);
+		SetWindowTextA(hUserMail, USER_MAIL.c_str());
 		break;
 	case WM_COMMAND:
 		if (LOWORD(wParam) == ID_BUTTONLINK) {
 
 			std::string auth_uri, client_id, client_secret;
 			std::string link = Authlink(client_id, client_secret, auth_uri);
-			logHistory += link + "\r\n";
-			SetWindowTextA(hOutput, logHistory.c_str());
+			AppendText(hOutput,link + "\n");
 		}
 		if (LOWORD(wParam) == ID_BUTTON) {
 			char* rowsText = new char[1024];
 			GetWindowTextA(hAuthCode, rowsText, 1024);
 			access = getAccessToken(rowsText);
-			logHistory += access + "\r\n";
-			SetWindowTextA(hOutput, logHistory.c_str());
-			SetWindowTextA(hAuthCode, "");
+			AppendText(hOutput, access + "\n");
+			int textLength = GetWindowTextLength(hOutput);
+			SendMessage(hOutput, EM_SETSEL, textLength, textLength);
+			SendMessage(hOutput, EM_SCROLLCARET, 0, 0);
 		}
 		if (LOWORD(wParam) == ID_BUTTONMAIL) {
-			std::thread(MessageProcessingThread, hOutput).detach();
+			std::thread(mainClient, hOutput).detach();
+		}
+		if (LOWORD(wParam) == ID_SUBMITMAIL) {
+			char* rowsText = new char[1024];
+			GetWindowTextA(hUserMail, rowsText, 1024);
+			USER_MAIL = rowsText;
 		}
 		break;
+	case WM_PAINT: {
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		// Perform any custom painting here if needed
+		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+
+		EndPaint(hwnd, &ps);
+		break;
+	}
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
@@ -321,7 +354,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 // Main entry point
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) {
-	const wchar_t CLASS_NAME[] = L"GMAIL GENERATOR";
+	const wchar_t CLASS_NAME[] = L"Client";
 
 	WNDCLASS wc = {};
 	wc.lpfnWndProc = WindowProc;
@@ -331,7 +364,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	RegisterClass(&wc);
 
 	HWND hwnd = CreateWindowEx(
-		0, CLASS_NAME, L"Email Generator",
+		0, CLASS_NAME, L"Client Application",
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720,
 		NULL, NULL, hInstance, NULL

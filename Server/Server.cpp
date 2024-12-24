@@ -24,10 +24,13 @@ void AppendText(HWND hOutput, const std::wstring& newText) {
 
     currentText += newText + L"\r\n";
     SetWindowTextW(hOutput, currentText.c_str());
+    int textLength = GetWindowTextLength(hOutput);
+    SendMessage(hOutput, EM_SETSEL, textLength, textLength);
+    SendMessage(hOutput, EM_SCROLLCARET, 0, 0);
 }
 
 // Network handler (runs in a separate thread)
-void NetworkHandler(HWND hOutput) {
+void mainServer(HWND hOutput) {
     WSADATA wsaData;
     int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0) {
@@ -129,8 +132,19 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             hwnd, (HMENU)ID_OUTPUT, NULL, NULL);
 
         // Start the network handler thread
-        std::thread(NetworkHandler, hOutput).detach();
+        std::thread(mainServer, hOutput).detach();
         break;
+
+    case WM_PAINT: {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+
+        // Perform any custom painting here if needed
+        FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+
+        EndPaint(hwnd, &ps);
+        break;
+    }
 
     case WM_DESTROY:
         PostQuitMessage(0);
@@ -144,7 +158,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 }
 
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) {
-    const wchar_t CLASS_NAME[] = L"GMAIL GENERATOR";
+    const wchar_t CLASS_NAME[] = L"Server";
 
     WNDCLASS wc = {};
     wc.lpfnWndProc = WindowProc;
@@ -154,7 +168,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     RegisterClass(&wc);
 
     HWND hwnd = CreateWindowEx(
-        0, CLASS_NAME, L"Email Generator",
+        0, CLASS_NAME, L"Server Application",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720,
         NULL, NULL, hInstance, NULL);
