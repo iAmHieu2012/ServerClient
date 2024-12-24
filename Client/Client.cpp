@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include "Mail.h"
 #include "Client.h"
 
@@ -261,25 +261,31 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	static HWND hAuthCode, hButton, hButtonLink, hButtonMail, hOutput, hUserMail, hSubmitMail;
 
 	switch (uMsg) {
+	case WM_CTLCOLORBTN: {
+		HDC hdcButton = (HDC)wParam;
+		SetBkColor(hdcButton, RGB(255, 0, 0)); // Chỉnh màu nền là đỏ
+		SetTextColor(hdcButton, RGB(255, 255, 255)); // Chỉnh màu chữ là trắng
+		return (LRESULT)GetStockObject(DC_BRUSH); // Sử dụng brush có sẵn
+	}
 	case WM_CREATE:
 		CreateWindow(L"STATIC", L"AuthCode:",
 			WS_VISIBLE | WS_CHILD,
-			20, 20, 50, 20,
+			20, 20, 80, 20,
 			hwnd, NULL, NULL, NULL);
 		hAuthCode = CreateWindow(L"EDIT", L"",
 			WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
-			70, 20, 300, 20,
+			90, 20, 300, 20,
 			hwnd, (HMENU)ID_AUTHCODE, NULL, NULL);
 
 		// Create a button to generate the token
 		hButton = CreateWindow(L"BUTTON", L"Generate token",
 			WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
-			600, 20, 120, 25,
+			600, 18, 120, 25,
 			hwnd, (HMENU)ID_BUTTON, NULL, NULL);
 		// Create a button to generate the auth link
 		hButtonLink = CreateWindow(L"BUTTON", L"Generate link",
 			WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
-			370, 20, 120, 25,
+			400, 18, 120, 25,
 			hwnd, (HMENU)ID_BUTTONLINK, NULL, NULL);
 		// Create a button to generate the mail
 		hButtonMail = CreateWindow(L"BUTTON", L"Generate mail",
@@ -296,7 +302,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			WS_VISIBLE | WS_CHILD,
 			20, 600, 50, 20,
 			hwnd, NULL, NULL, NULL);
-		hSubmitMail = CreateWindow(L"BUTTON", L"Change mail address",
+		hSubmitMail = CreateWindow(L"BUTTON", L"Change mail",
 			WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
 			370, 600, 120, 25,
 			hwnd, (HMENU)ID_SUBMITMAIL, NULL, NULL);
@@ -306,6 +312,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			hwnd, (HMENU)ID_USERMAIL, NULL, NULL);
 		SetWindowTextA(hUserMail, USER_MAIL.c_str());
 		break;
+
+	case WM_PAINT: {
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hwnd, &ps);
+
+		// Tạo một bàn chải màu vàng nhạt
+		HBRUSH hBrush = CreateSolidBrush(RGB(255, 255, 204));
+		FillRect(hdc, &ps.rcPaint, hBrush);
+
+		// Giải phóng bàn chải sau khi sử dụng
+		DeleteObject(hBrush);
+
+		EndPaint(hwnd, &ps);
+	}
+	
 	case WM_COMMAND:
 		if (LOWORD(wParam) == ID_BUTTONLINK) {
 
@@ -331,16 +352,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			USER_MAIL = rowsText;
 		}
 		break;
-	case WM_PAINT: {
-		PAINTSTRUCT ps;
-		HDC hdc = BeginPaint(hwnd, &ps);
-
-		// Perform any custom painting here if needed
-		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
-
-		EndPaint(hwnd, &ps);
-		break;
-	}
 
 	case WM_DESTROY:
 		PostQuitMessage(0);
