@@ -1,10 +1,10 @@
 #include "Client.h"
 
 int sendStr(SOCKET s, const wchar_t* buf, int len) {
-	return send(s, reinterpret_cast<const char*>(buf), len*2, 0);
+	return send(s, reinterpret_cast<const char*>(buf), len * 2, 0);
 }
 int recvStr(SOCKET s, wchar_t* buf, int len) {
-	return recv(s, reinterpret_cast<char*>(buf), len*2, 0);
+	return recv(s, reinterpret_cast<char*>(buf), len * 2, 0);
 }
 
 TASK request2TASK(wchar_t* request) {

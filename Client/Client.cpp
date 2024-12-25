@@ -109,9 +109,10 @@ void mainClient(HWND hOutput) {
 
 		std::vector<std::vector<std::string>> IP_tasks = getUnreadMessageContents(access);
 		for (const auto& messageContent : IP_tasks) {
-			AppendText(hOutput, "New Message Subject: " + messageContent[0]);
-			AppendText(hOutput, "New Message Content: " + messageContent[1]);
-			AppendText(hOutput, "New Message Sender address: " + messageContent[2]);
+			AppendText(hOutput, "New Message Subject: " + messageContent[0]+"\r\n");
+			AppendText(hOutput, "New Message Content: " + messageContent[1]+"\r\n");
+			AppendText(hOutput, "New Message Sender address: " + messageContent[2]+"\r\n");
+
 
 			if (messageContent[2] != USER_MAIL) continue;
 
@@ -124,7 +125,7 @@ void mainClient(HWND hOutput) {
 
 			int iResult = getaddrinfo(ipaddr.c_str(), DEFAULT_PORT, &hints, &result);
 			if (iResult != 0) {
-				AppendText(hOutput, "getaddrinfo failed with error: " + std::to_string(iResult));
+				AppendText(hOutput, "getaddrinfo failed with error: " + std::to_string(iResult) +"\n");
 				WSACleanup();
 				continue;
 			}
@@ -160,7 +161,7 @@ void mainClient(HWND hOutput) {
 				wcscpy(sendbuf, (L"TURNONCAMERA " + std::wstring(filename)).c_str());
 			}
 
-			AppendText(hOutput, L"Client: " + std::wstring(sendbuf));
+			AppendText(hOutput, L"Client: " + std::wstring(sendbuf) +L"\n");
 
 			iResult = send(ConnectSocket, reinterpret_cast<const char*>(sendbuf), DEFAULT_BUFLEN, 0);
 			if (iResult > 0) {
@@ -187,33 +188,33 @@ void mainClient(HWND hOutput) {
 					const int64_t rc = RecvFile(ConnectSocket, FileName(temp).c_str());
 					if (rc < 0)
 					{
-						std::cout << "Failed to recv file: " << rc << std::endl;
+						AppendText(hOutput, "Failed to recv file: " + std::to_string(rc) + "\n");
 						try {
 							if (sendEmailViaGmailAPI(access, sender_email, recipient_email, subject, "Failed to get the file from server")) {
-								std::cout << "Email sent successfully!" << std::endl;
+								AppendText(hOutput, "Email sent successfully!\n");
 							}
 							else {
-								std::cerr << "Failed to send email." << std::endl;
+								AppendText(hOutput, "Failed to send email.\n");
 							}
 						}
 						catch (const std::exception& e) {
-							std::cerr << "Error: " << e.what() << std::endl;
+							AppendText(hOutput, "Error: " + std::string(e.what()) + "\n");
 						}
 					}
 					else {
 						iResult = recvStr(ConnectSocket, recvbuf);
-						if (iResult < 0) std::cout << "Failed to recv str: " << rc << std::endl;
+						if (iResult < 0) AppendText(hOutput, "Failed to recv str: " + std::to_string(rc) + "\n");
 						else {
 							try {
 								if (sendEmailWithAttachment(access, sender_email, recipient_email, subject, body, file_path, file_name)) {
-									std::cout << "Email sent successfully!" << std::endl;
+									AppendText(hOutput, "Email sent successfully!\n");
 								}
 								else {
-									std::cerr << "Failed to send email." << std::endl;
+									AppendText(hOutput, "Failed to send email.\n");
 								}
 							}
 							catch (const std::exception& e) {
-								std::cerr << "Error: " << e.what() << std::endl;
+								AppendText(hOutput, "Error: " + std::string(e.what()) + "\n");
 							}
 						}
 					}
@@ -226,17 +227,17 @@ void mainClient(HWND hOutput) {
 					else {
 						try {
 							if (sendEmailViaGmailAPI(access, sender_email, recipient_email, subject, "Done")) {
-								std::cout << "Email sent successfully!" << std::endl;
+								AppendText(hOutput, "Email sent successfully!\n");
 							}
 							else {
-								std::cerr << "Failed to send email." << std::endl;
+								AppendText(hOutput, "Failed to send email.\n");
 							}
 						}
 						catch (const std::exception& e) {
-							std::cerr << "Error: " << e.what() << std::endl;
+							AppendText(hOutput, "Error: " + std::string(e.what()) + "\n");
 						}
 					}
-					std::wcout << L"Server: " << recvbuf << std::endl;
+					AppendText(hOutput, L"Server: " + std::wstring(recvbuf) + L"\n");
 				}
 			}
 			else if (iResult == 0) {
@@ -263,9 +264,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	switch (uMsg) {
 	case WM_CTLCOLORBTN: {
 		HDC hdcButton = (HDC)wParam;
-		SetBkColor(hdcButton, RGB(255, 0, 0)); 
-		SetTextColor(hdcButton, RGB(255, 255, 255)); 
-		return (LRESULT)GetStockObject(DC_BRUSH); 
+		SetBkColor(hdcButton, RGB(255, 0, 0));
+		SetTextColor(hdcButton, RGB(255, 255, 255));
+		return (LRESULT)GetStockObject(DC_BRUSH);
 	}
 	case WM_CREATE:
 		CreateWindow(L"STATIC", L"AuthCode:",
@@ -300,15 +301,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			hwnd, (HMENU)ID_OUTPUT, NULL, NULL);
 		CreateWindow(L"STATIC", L"Mail address",
 			WS_VISIBLE | WS_CHILD,
-			20, 600, 50, 20,
+			20, 400, 50, 20,
 			hwnd, NULL, NULL, NULL);
 		hSubmitMail = CreateWindow(L"BUTTON", L"Change mail",
 			WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
-			370, 600, 120, 25,
+			370, 400, 120, 25,
 			hwnd, (HMENU)ID_SUBMITMAIL, NULL, NULL);
 		hUserMail = CreateWindow(L"EDIT", L"",
 			WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
-			70, 600, 300, 20,
+			70, 400, 300, 20,
 			hwnd, (HMENU)ID_USERMAIL, NULL, NULL);
 		SetWindowTextA(hUserMail, USER_MAIL.c_str());
 		break;
@@ -330,13 +331,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 			std::string auth_uri, client_id, client_secret;
 			std::string link = Authlink(client_id, client_secret, auth_uri);
-			AppendText(hOutput, link + "\n");
+			AppendText(hOutput, "Authorization link:\r\n" + link + "\n");
 		}
 		if (LOWORD(wParam) == ID_BUTTON) {
 			char* rowsText = new char[1024];
 			GetWindowTextA(hAuthCode, rowsText, 1024);
 			access = getAccessToken(rowsText);
-			AppendText(hOutput, access + "\n");
+			AppendText(hOutput,"Your access token is:\r\n"+ access + "\n");
 			int textLength = GetWindowTextLength(hOutput);
 			SendMessage(hOutput, EM_SETSEL, textLength, textLength);
 			SendMessage(hOutput, EM_SCROLLCARET, 0, 0);
@@ -375,7 +376,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	HWND hwnd = CreateWindowEx(
 		0, CLASS_NAME, L"Client Application",
 		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720,
+		CW_USEDEFAULT, CW_USEDEFAULT, 800, 500,
 		NULL, NULL, hInstance, NULL
 	);
 
